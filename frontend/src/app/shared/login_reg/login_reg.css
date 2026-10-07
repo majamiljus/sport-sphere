@@ -1,0 +1,207 @@
+:host {
+  display: block;
+  min-height: 100%;
+  background: transparent;
+  color: #102b2a;
+  font-family: Inter,Arial,sans-serif;
+}
+
+.auth-page {
+  min-height: 100%;
+  display: grid;
+  grid-template-columns:
+    minmax(360px,1fr)
+    minmax(440px,1fr);
+
+  background: transparent;
+}
+
+.form-panel {
+  min-width: 0;
+  min-height: 100%;
+
+  display: grid;
+  place-items: center;
+
+  padding: 44px;
+  overflow: auto;
+
+  background: transparent;
+}
+
+.visual-panel {
+  min-height: calc(100dvh - 32px);
+  margin: 16px;
+  overflow: hidden;
+
+  border: 1px solid rgba(16,43,42,.12);
+  border-radius: 24px;
+
+  background-color: #102b2a;
+  background-image:
+    linear-gradient(
+      rgba(16,43,42,.08),
+      rgba(16,43,42,.08)
+    ),
+    url('/sport_pozadina.png');
+
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  box-shadow:
+    0 18px 45px
+    rgba(16,43,42,.16);
+}
+
+
+
+.auth-card {
+  width: min(100%,470px);
+  padding: 36px;
+
+  border: 1px solid rgba(16,43,42,.12);
+  border-radius: 22px;
+
+  background: #fffdf8;
+
+  box-shadow:
+    0 18px 50px
+    rgba(16,43,42,.12);
+}
+
+.auth-card--wide {
+  width: min(100%,820px);
+}
+
+.auth-header {
+  margin-bottom: 30px;
+}
+
+.auth-header h1 {
+  margin: 0 0 8px;
+
+  color: #102b2a;
+
+  font-size: clamp(32px,4vw,46px);
+  font-weight: 850;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.auth-header p {
+  margin: 0;
+
+  color: #66736c;
+
+  line-height: 1.55;
+}
+
+.auth-card label {
+  color: #102b2a;
+  font-weight: 700;
+}
+
+.auth-card input,
+.auth-card select,
+.auth-card textarea {
+  border: 1px solid rgba(16,43,42,.22);
+  border-radius: 10px;
+
+  background: #fffdf8;
+  color: #102b2a;
+
+  font: inherit;
+}
+
+.auth-card input::placeholder,
+.auth-card textarea::placeholder {
+  color: #8a948f;
+}
+
+.auth-card input:focus,
+.auth-card select:focus,
+.auth-card textarea:focus {
+  border-color: #102b2a;
+  outline: none;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(16,43,42,.12);
+}
+
+.auth-card button[type="submit"] {
+  border: 1px solid #102b2a;
+  border-radius: 999px;
+
+  background: #102b2a;
+  color: #fffaf0;
+
+  font: inherit;
+  font-weight: 800;
+
+  cursor: pointer;
+  transition: 160ms ease;
+}
+
+.auth-card button[type="submit"]:hover {
+  background: #1b4543;
+  border-color: #1b4543;
+}
+
+.auth-card button[type="submit"]:disabled {
+  border-color: #aab4af;
+  background: #aab4af;
+  color: #f8f5ee;
+  cursor: not-allowed;
+}
+
+.auth-card a {
+  color: #d96c1f;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.auth-card a:hover {
+  color: #b85414;
+}
+
+@media(max-width: 900px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+
+  .visual-panel {
+    display: none;
+  }
+
+  .form-panel {
+    padding: 28px 20px 50px;
+  }
+
+  .auth-card {
+    width: min(100%,620px);
+    padding: 28px;
+    border-radius: 18px;
+  }
+}
+
+@media(max-width: 520px) {
+  .form-panel {
+    padding: 18px 12px 34px;
+  }
+
+  .auth-card {
+    padding: 22px 18px;
+    border-radius: 16px;
+  }
+
+  .auth-header {
+    margin-bottom: 24px;
+  }
+
+  .auth-header h1 {
+    font-size: 30px;
+  }
+  
+}

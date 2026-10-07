@@ -1,0 +1,60 @@
+<header class="site-header">
+  <a
+    class="brand"
+    routerLink="/sportista/profil"
+    aria-label="SportSphere početna stranica sportiste"
+  >
+    <img
+      src="/logo.png"
+      alt="SportSphere logo"
+      class="header-logo"
+    >
+
+    <span>SportSphere</span>
+  </a>
+
+  <nav aria-label="Glavna navigacija sportiste">
+    <a routerLink="/sportista/profil" routerLinkActive="active-link">
+      Profil
+    </a>
+
+    <a routerLink="/sportista/rezervisi" routerLinkActive="active-link">
+      Rezervacije
+    </a>
+
+    <a routerLink="/sportista/oglas" routerLinkActive="active-link">
+      Oglasi
+    </a>
+
+    <a routerLink="/sportista/trening" routerLinkActive="active-link">
+      Treninzi
+    </a>
+
+    <a routerLink="/sportista/prodavnica" routerLinkActive="active-link">
+      Prodavnica
+    </a>
+
+    <a routerLink="/sportista/ocenjivanje" routerLinkActive="active-link">
+        Ocenjivanje
+    </a>
+      
+    <a routerLink="/sportista/statistika" routerLinkActive="active-link">
+        Statistika
+    </a>
+  </nav>
+
+  <div class="header-actions">
+    <a class="cart-button" routerLink="/sportista/korpa" aria-label="Prikaži korpu">
+      <img src="/bag.png" alt="Korpa">
+      @if(ukupanBrojProizvoda() > 0) {
+        <span class="cart-count">
+          {{ukupanBrojProizvoda()}}
+        </span>
+      }
+    </a>
+
+    <button type="button" class="logout-button" (click)="odjaviSe()">
+      Odjavi se
+    </button>
+  </div>
+</header>

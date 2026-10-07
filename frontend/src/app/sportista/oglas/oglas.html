@@ -1,0 +1,435 @@
+<app-sportista-header></app-sportista-header>
+
+<main class="oglasi-page">
+  <section class="hero">
+    <div>
+      <span class="eyebrow">PRONAĐI EKIPU</span>
+      <h1>Oglasi za saigrače</h1>
+      <p>Objavi oglas za igru ili se pridruži ekipi drugog sportiste.</p>
+    </div>
+  </section>
+
+  <section class="content-grid">
+    <article class="card form-card">
+      <div class="card-heading">
+        <div>
+          <span class="section-number">01</span>
+          <h2>Objavi oglas</h2>
+        </div>
+      </div>
+
+      <form #oglasForma="ngForm" (ngSubmit)="objaviOglas()">
+        <div class="form-grid">
+          <div class="field">
+            <label for="sport">Sport</label>
+
+            <select
+              id="sport"
+              name="sport"
+              [(ngModel)]="noviOglas.sport"
+              required
+            >
+              <option value="">Izaberite sport</option>
+
+              @for(sport of sportovi; track sport) {
+                <option [value]="sport">{{sport}}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="grad">Grad</label>
+
+            <input
+              id="grad"
+              type="text"
+              name="grad"
+              [(ngModel)]="noviOglas.grad"
+              placeholder="Na primer Beograd"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="datum">Datum</label>
+
+            <input
+              id="datum"
+              type="date"
+              name="datum"
+              [(ngModel)]="noviOglas.datum"
+              [min]="minimalniDatum"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="brojIgraca">
+              Broj nedostajućih igrača
+            </label>
+
+            <input
+              id="brojIgraca"
+              type="number"
+              name="brojIgraca"
+              [(ngModel)]="noviOglas.brojNedostajucihIgraca"
+              min="1"
+              step="1"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="vremeOd">Početak termina</label>
+
+            <select
+              id="vremeOd"
+              name="vremeOd"
+              [(ngModel)]="noviOglas.vremeOd"
+              (ngModelChange)="promenjenPocetakTermina()"
+              required
+            >
+              <option value="">Izaberite početak</option>
+
+              @for(sat of sati; track sat) {
+                <option [value]="sat">{{sat}}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="vremeDo">Kraj termina</label>
+
+            <select
+              id="vremeDo"
+              name="vremeDo"
+              [(ngModel)]="noviOglas.vremeDo"
+              [disabled]="!noviOglas.vremeOd"
+              required
+            >
+              <option value="">Izaberite kraj</option>
+
+              @for(sat of moguciKrajeviTermina(); track sat) {
+                <option [value]="sat">{{sat}}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <button
+          class="primary-button"
+          type="submit"
+          [disabled]="slanje"
+        >
+          {{slanje ? 'Objavljivanje...' : 'Objavi oglas'}}
+        </button>
+      </form>
+    </article>
+
+    @if(poruka) {
+      <div class="message message--success">
+        {{poruka}}
+      </div>
+    }
+
+    @if(greska) {
+      <div class="message message--error">
+        {{greska}}
+      </div>
+    }
+
+    <article class="card table-card">
+      <div class="card-heading">
+        <div>
+          <span class="section-number">02</span>
+          <h2>Aktivni oglasi</h2>
+        </div>
+      </div>
+
+      @if(ucitavanje) {
+        <div class="empty-state">
+          Učitavanje oglasa...
+        </div>
+      } @else if(oglasi.length === 0) {
+        <div class="empty-state">
+          Trenutno nema aktivnih oglasa.
+        </div>
+      } @else {
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Autor</th>
+                <th>Sport</th>
+                <th>Grad</th>
+                <th>Datum</th>
+                <th>Termin</th>
+                <th>Slobodna mesta</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for(oglas of oglasi; track oglas.id) {
+                <tr [class.my-ad]="jeVlasnik(oglas)">
+                  <td>
+                    <strong>{{oglas.ime}} {{oglas.prezime}}</strong>
+
+                    @if(jeVlasnik(oglas)) {
+                      <span class="owner-label">Moj oglas</span>
+                    }
+                  </td>
+
+                  <td>
+                    <span class="sport-badge">{{oglas.sport}}</span>
+                  </td>
+
+                  <td>{{oglas.grad}}</td>
+                  <td>{{formatirajDatum(oglas.datum)}}</td>
+                  <td>{{oglas.vremeOd}}–{{oglas.vremeDo}}</td>
+                  <td>{{oglas.brojNedostajucihIgraca}}</td>
+
+                  <td>
+                    @if(jeVlasnik(oglas)) {
+                      <button
+                        type="button"
+                        class="danger-button"
+                        (click)="zatvoriOglas(oglas)"
+                      >
+                        Zatvori oglas
+                      </button>
+                    } @else if(!statusMogZahteva(oglas)) {
+                      <button
+                        type="button"
+                        class="primary-button small-button"
+                        (click)="posaljiZahtev(oglas)"
+                      >
+                        Pošalji zahtev
+                      </button>
+                    } @else if(statusMogZahteva(oglas) === 'odbijen') {
+                      <div class="request-action">
+                        <span class="status status--rejected">
+                          Zahtev je odbijen
+                        </span>
+
+                        <button
+                          type="button"
+                          class="secondary-button"
+                          (click)="posaljiZahtev(oglas)"
+                        >
+                          Pošalji ponovo
+                        </button>
+                      </div>
+                    } @else {
+                      <span
+                        class="status"
+                        [class.status--pending]="statusMogZahteva(oglas) === 'na_cekanju'"
+                        [class.status--approved]="statusMogZahteva(oglas) === 'odobren'"
+                      >
+                        {{tekstStatusa(statusMogZahteva(oglas))}}
+                      </span>
+                    }
+                  </td>
+                </tr>
+
+                @if(jeVlasnik(oglas) && oglas.zahtevi.length > 0) {
+                  <tr class="requests-row">
+                    <td colspan="7">
+                      <div class="requests">
+                        <h3>Zahtevi za pridruživanje</h3>
+
+                        <div class="request-list">
+                          @for(zahtev of oglas.zahtevi; track zahtev.id) {
+                            <div class="request-item">
+                              <div class="request-user">
+                                <strong>
+                                  {{zahtev.ime}} {{zahtev.prezime}}
+                                </strong>
+
+                                <span
+                                  class="status"
+                                  [class.status--pending]="zahtev.status === 'na_cekanju'"
+                                  [class.status--approved]="zahtev.status === 'odobren'"
+                                  [class.status--rejected]="zahtev.status === 'odbijen'"
+                                >
+                                  {{tekstStatusa(zahtev.status)}}
+                                </span>
+                              </div>
+
+                              @if(zahtev.status === 'na_cekanju') {
+                                <div class="request-buttons">
+                                  <button
+                                    type="button"
+                                    class="approve-button"
+                                    (click)="obradiZahtev(oglas,zahtev.username,'odobren')"
+                                  >
+                                    Odobri
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    class="reject-button"
+                                    (click)="obradiZahtev(oglas,zahtev.username,'odbijen')"
+                                  >
+                                    Odbij
+                                  </button>
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </article>
+
+    <article class="card table-card">
+      <div class="card-heading">
+        <div>
+          <span class="section-number">03</span>
+          <h2>Neaktivni oglasi</h2>
+        </div>
+
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="promeniPrikazZatvorenih()"
+        >
+          {{prikaziZatvorene ? 'Sakrij zatvorene oglase' : 'Prikaži zatvorene oglase'}}
+        </button>
+      </div>
+
+      @if(prikaziZatvorene) {
+        @if(ucitavanjeZatvorenih) {
+          <div class="empty-state">
+            Učitavanje oglasa...
+          </div>
+        } @else if(zatvoreniOglasi.length === 0) {
+          <div class="empty-state">
+            Nemate zatvorene ili popunjene oglase.
+          </div>
+        } @else {
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Autor</th>
+                  <th>Sport</th>
+                  <th>Grad</th>
+                  <th>Datum</th>
+                  <th>Termin</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                @for(oglas of zatvoreniOglasi; track oglas.id) {
+                  <tr [class.my-ad]="jeVlasnik(oglas)">
+                    <td>
+                      <strong>{{oglas.ime}} {{oglas.prezime}}</strong>
+
+                      <span class="owner-label">
+                        {{tekstPovezanostiSaOglasom(oglas)}}
+                      </span>
+                    </td>
+
+                    <td>
+                      <span class="sport-badge">{{oglas.sport}}</span>
+                    </td>
+
+                    <td>{{oglas.grad}}</td>
+                    <td>{{formatirajDatum(oglas.datum)}}</td>
+                    <td>{{oglas.vremeOd}}–{{oglas.vremeDo}}</td>
+
+                    <td>
+                      <span
+                        class="status"
+                        [class.status--approved]="oglas.status === 'popunjen'"
+                        [class.status--rejected]="oglas.status === 'zatvoren'"
+                        [class.status--pending]="oglas.status === 'istekao'"
+                      >
+                        {{tekstStatusaOglasa(oglas.status)}}
+                      </span>
+                    </td>
+                  </tr>
+
+                  @if(oglas.status === 'popunjen') {
+                    <tr class="requests-row">
+                      <td colspan="6">
+                        <div class="requests">
+                          <h3>Prihvaćeni igrači</h3>
+
+                          @if(oglas.zahtevi.length === 0) {
+                            <div class="empty-state">
+                              Nema prihvaćenih igrača.
+                            </div>
+                          } @else {
+                            <div class="request-list">
+                              @for(zahtev of oglas.zahtevi; track zahtev.username) {
+                                <div class="request-item">
+                                  <div class="request-user">
+                                    <strong>
+                                      {{zahtev.ime}} {{zahtev.prezime}}
+                                    </strong>
+
+                                    @if(zahtev.username === username) {
+                                      <span class="owner-label">Vi</span>
+                                    }
+
+                                    <span class="status status--approved">
+                                      Zahtev je odobren
+                                    </span>
+                                  </div>
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+
+                  @if(oglas.status === 'zatvoren') {
+                    <tr class="requests-row">
+                      <td colspan="6">
+                        <div class="empty-state">
+                          @if(jeVlasnik(oglas)) {
+                            Zatvorili ste ovaj oglas.
+                          } @else {
+                            Autor je zatvorio oglas za koji ste poslali zahtev.
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+
+                  @if(oglas.status === 'istekao') {
+                    <tr class="requests-row">
+                      <td colspan="6">
+                        <div class="empty-state">
+                          @if(jeVlasnik(oglas)) {
+                            Vaš oglas je istekao.
+                          } @else {
+                            Istekao je oglas za koji ste poslali zahtev.
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    </article>
+  </section>
+</main>
+
+<app-public-footer></app-public-footer>

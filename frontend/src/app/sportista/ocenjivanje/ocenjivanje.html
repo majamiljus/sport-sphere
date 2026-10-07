@@ -1,0 +1,123 @@
+<div class="page-shell">
+  <app-sportista-header></app-sportista-header>
+  <main class="ocenjivanje-page">
+    <section class="hero">
+      <span class="eyebrow">VAŠA ISKUSTVA</span>
+      <h1>Ocenjivanje</h1>
+      <p>Ocenite sportske objekte u kojima ste imali potvrđenu rezervaciju i podelite svoje iskustvo.</p>
+    </section>
+    <section class="content-section">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">DOSTUPNI OBJEKTI</span>
+          <h2>Objekti koje možete oceniti</h2>
+        </div>
+        <p>Broj ocena ne može biti veći od broja potvrđenih rezervacija u objektu.</p>
+      </div>
+      <div class="message" *ngIf="ucitavanje">
+        Učitavanje objekata...
+      </div>
+      <div class="empty-state" *ngIf=" !ucitavanje && objekti.length === 0">
+        <h3>Trenutno nemate objekte za ocenjivanje</h3>
+        <p>Objekat možete oceniti nakon potvrđene rezervacije.</p>
+        <a routerLink="/sportista/rezervisi" class="primary-link">
+          Rezerviši termin
+        </a>
+      </div>
+      <p class="server-message" [class.server-message--success]="uspesnaPoruka" *ngIf="poruka">{{poruka}}</p>
+      <div class="facility-grid" *ngIf="!ucitavanje && objekti.length> 0">
+        <article class="facility-card" *ngFor="let objekat of objekti" [class.facility-card--selected]="izabraniObjekat?.id === objekat.id">
+          <img [src]="putanjaSlike(objekat.naslovnaSlika)" [alt]="objekat.naziv">
+          <div class="facility-content">
+            <span class="city">{{objekat.grad}}</span>
+            <h3>{{objekat.naziv}}</h3>
+            <p class="address">{{objekat.adresa}}</p>
+            <div class="sports">
+              <span *ngFor="let sport of objekat.sportovi">{{sport}}</span>
+            </div>
+            <div class="rating-info">
+              <span>♥ {{objekat.svidjanja}}</span>
+              <span>♡ {{objekat.nesvidjanja}}</span>
+              <strong>Preostalo ocena: {{objekat.brojPreostalihOcena}}</strong>
+            </div>
+            <button type="button" class="rate-button" (click)="izaberiObjekat(objekat)">
+              Oceni objekat
+            </button>
+          </div>
+        </article>
+      </div>
+    </section>
+    <section #formaOcene class="content-section rating-section" *ngIf="izabraniObjekat">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">VAŠA OCENA</span>
+          <h2>{{izabraniObjekat.naziv}}</h2>
+        </div>
+        <button type="button" class="close-button" (click)="zatvoriFormu()">
+          Zatvori
+        </button>
+      </div>
+      <div class="rating-overview">
+        <div>
+          <strong>{{podaciOcena?.svidjanja ?? izabraniObjekat.svidjanja}}</strong>
+          <span>♥ Sviđanja</span>
+        </div>
+        <div>
+          <strong>{{podaciOcena?.nesvidjanja ?? izabraniObjekat.nesvidjanja}}</strong>
+          <span>♡ Nesviđanja</span>
+        </div>
+        <div>
+          <strong>{{podaciOcena ? podaciOcena.brojPotvrdjenihRezervacija - podaciOcena.brojOstavljenihOcena : izabraniObjekat.brojPreostalihOcena}}</strong>
+          <span>Preostale ocene</span>
+        </div>
+      </div>
+      <div class="rating-card">
+        <div class="reaction-buttons">
+          <button type="button" [class.selected]=" reakcija === 'svidjanje' " (click)="izaberiReakciju('svidjanje')">
+            ♥ Sviđa mi se
+          </button>
+          <button type="button" [class.selected]=" reakcija === 'nesvidjanje' " (click)="izaberiReakciju('nesvidjanje')">
+            ♡ Ne sviđa mi se
+          </button>
+        </div>
+        <label>
+          <span>Komentar</span>
+          <textarea name="komentar" maxlength="500" [(ngModel)]="komentar" placeholder="Napišite svoje iskustvo sa objektom..."></textarea>
+          <small>{{komentar.length}}/500</small>
+        </label>
+        <button type="button" class="submit-button" [disabled]="slanje" (click)="posaljiOcenu()">
+          {{slanje ? 'Čuvanje...' : 'Pošalji ocenu'}}
+        </button>
+      </div>
+      <section class="comments-section">
+        <div class="comments-heading">
+          <div>
+            <span class="eyebrow">PRETHODNA ISKUSTVA</span>
+            <h3>Poslednji komentari</h3>
+          </div>
+          <p>Prikazano je najviše pet najnovijih komentara.</p>
+        </div>
+        <div class="message" *ngIf="ucitavanjeOcena">
+          Učitavanje komentara...
+        </div>
+        <div class="comments-list" *ngIf=" !ucitavanjeOcena && podaciOcena?.komentari?.length ">
+          <article class="comment-card" [class.comment-card--mine]=" stavka.mojKomentar " *ngFor=" let stavka of podaciOcena?.komentari ">
+            <div class="comment-top">
+              <div>
+                <strong>{{stavka.ime}} {{stavka.prezime}}</strong>
+                <span class="my-comment-label" *ngIf="stavka.mojKomentar">Vaša ocena</span>
+              </div>
+              <span class="comment-reaction" [class.comment-reaction--dislike]=" stavka.reakcija === 'nesvidjanje'">{{nazivReakcije(stavka.reakcija)}}</span>
+            </div>
+            <p>{{stavka.komentar}}</p>
+            <time>{{stavka.datum | date:'dd.MM.yyyy. HH:mm'}}</time>
+          </article>
+        </div>
+        <div class="empty-comments" *ngIf="!ucitavanjeOcena && !podaciOcena?.komentari?.length">
+          Za ovaj objekat još nema komentara.
+        </div>
+      </section>
+    </section>
+  </main>
+  <app-public-footer></app-public-footer>
+</div>

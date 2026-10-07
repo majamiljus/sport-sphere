@@ -1,0 +1,165 @@
+<div class="page-shell">
+  <app-admin-header></app-admin-header>
+
+  <main class="facilities-page">
+    <section class="facilities-hero">
+      <div>
+        <span class="eyebrow">ADMINISTRACIJA</span>
+
+        <h1>Zahtevi za sportske objekte</h1>
+
+        <p>Pregledajte nove sportske objekte koje su uneli zaposleni i odlučite da li će postati dostupni korisnicima sistema.</p>
+      </div>
+
+      <div class="hero-stat">
+        <span>Objekti na čekanju</span>
+
+        <strong>{{objekti.length}}</strong>
+      </div>
+    </section>
+
+    <section class="facilities-content">
+      <div class="filters-card">
+        <div class="filter-heading">
+          <div>
+            <span class="eyebrow">PRETRAGA</span>
+
+            <h2>Pronađite objekat</h2>
+          </div>
+
+          <button type="button" class="reset-button" (click)="ponistiFiltere()">Poništi filtere</button>
+        </div>
+
+        <div class="filters-grid">
+          <label>
+            <span>Pretraga objekata</span>
+
+            <input type="text" name="pretraga" [(ngModel)]="pretraga" (ngModelChange)="filtrirajObjekte()" placeholder="Naziv, grad, adresa, sport ili zaposleni">
+          </label>
+
+          <label>
+            <span>Sport</span>
+
+            <select name="izabraniSport" [(ngModel)]="izabraniSport" (ngModelChange)="filtrirajObjekte()">
+              <option value="">Svi sportovi</option>
+
+              <option *ngFor="let sport of dostupniSportovi" [value]="sport">{{sport}}</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="loading-card" *ngIf="ucitavanje">Učitavanje zahteva za sportske objekte...</div>
+
+      <div class="facilities-grid" *ngIf="!ucitavanje">
+        <article class="facility-card" *ngFor="let objekat of prikazaniObjekti">
+          <img class="facility-cover" [src]="putanjaSlike(objekat.naslovnaSlika)" [alt]="objekat.naziv">
+
+          <div class="facility-content">
+            <div class="facility-heading">
+              <div>
+                <span class="location">{{objekat.grad}}</span>
+
+                <h2>{{objekat.naziv}}</h2>
+
+                <p class="address">{{objekat.adresa}}</p>
+              </div>
+
+              <span class="status-badge">Na čekanju</span>
+            </div>
+
+            <p class="description" *ngIf="objekat.kratakOpis">{{objekat.kratakOpis}}</p>
+
+            <div class="facility-details">
+              <div class="detail-row">
+                <span>Sportovi</span>
+
+                <strong>{{opisSportova(objekat)}}</strong>
+              </div>
+
+              <div class="detail-row">
+                <span>Tipovi terena</span>
+
+                <strong>{{opisTipovaTerena(objekat)}}</strong>
+              </div>
+
+              <div class="detail-row">
+                <span>Radno vreme</span>
+
+                <strong>{{objekat.radnoVremeOd}} – {{objekat.radnoVremeDo}}</strong>
+              </div>
+
+              <div class="detail-row">
+                <span>Dozvoljeni nedolasci</span>
+
+                <strong>{{objekat.dozvoljenaNePojavljivanja}}</strong>
+              </div>
+
+              <div class="detail-row">
+                <span>Broj terena</span>
+
+                <strong>{{objekat.tereni.length}}</strong>
+              </div>
+            </div>
+
+            <div class="employee-box" *ngIf="objekat.zaposleni as zaposleni">
+              <span>Unos zaposlenog</span>
+
+              <strong>{{zaposleni.ime}} {{zaposleni.prezime}}</strong>
+
+              <small>@{{zaposleni.username}} · {{zaposleni.imejl}}</small>
+            </div>
+
+            <div class="employee-box" *ngIf="!objekat.zaposleni">
+              <span>Unos zaposlenog</span>
+
+              <strong>Zaposleni nije pronađen</strong>
+            </div>
+
+            <div class="courts-section">
+              <h3>Tereni</h3>
+
+              <div class="courts-list">
+                <article class="court-card" *ngFor="let teren of objekat.tereni">
+                  <div class="court-heading">
+                    <div>
+                      <strong>{{teren.naziv}}</strong>
+
+                      <small>{{teren.sport}} · {{ teren.tip === 'otvoreni' ? 'Otvoreni' : 'Zatvoreni' }}</small>
+                    </div>
+
+                    <strong class="court-price">{{teren.cenaPoSatu}} RSD/h</strong>
+                  </div>
+
+                  <div class="court-information">
+                    <span>Kapacitet: {{teren.kapacitet}}</span>
+                  </div>
+
+                  <p *ngIf="teren.opisOpreme">{{teren.opisOpreme}}</p>
+                </article>
+
+                <p class="no-courts" *ngIf="objekat.tereni.length === 0">Objekat nema unete terene.</p>
+              </div>
+            </div>
+
+            <div class="facility-actions">
+              <button type="button" class="reject-button" [disabled]="obrada" (click)="odbijObjekat(objekat)">Odbijte</button>
+
+              <button type="button" class="approve-button" [disabled]="obrada" (click)="odobriObjekat(objekat)">Odobrite</button>
+            </div>
+          </div>
+        </article>
+
+        <div class="empty-card" *ngIf="prikazaniObjekti.length === 0">
+          <h3>Nema objekata</h3>
+
+          <p>Trenutno nema zahteva koji odgovaraju izabranim kriterijumima.</p>
+        </div>
+      </div>
+
+      <p class="server-message" [class.server-message--success]="uspesnaPoruka" *ngIf="poruka">{{poruka}}</p>
+    </section>
+  </main>
+
+  <app-public-footer></app-public-footer>
+</div>

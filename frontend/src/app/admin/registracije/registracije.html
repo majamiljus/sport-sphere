@@ -1,0 +1,134 @@
+<div class="page-shell">
+  <app-admin-header></app-admin-header>
+
+  <main class="registrations-page">
+    <section class="registrations-hero">
+      <div>
+        <span class="eyebrow">ADMINISTRACIJA</span>
+
+        <h1>Zahtevi za registraciju</h1>
+
+        <p>Pregledajte zahteve sportista i zaposlenih i odlučite da li će njihovi nalozi biti odobreni ili odbijeni.</p>
+      </div>
+
+      <div class="hero-stat">
+        <span>Zahtevi na čekanju</span>
+
+        <strong>{{zahtevi.length}}</strong>
+      </div>
+    </section>
+
+    <section class="registrations-content">
+      <div class="filters-card">
+        <div class="filter-heading">
+          <div>
+            <span class="eyebrow">PRETRAGA</span>
+
+            <h2>Pronađite zahtev</h2>
+          </div>
+
+          <button type="button" class="reset-button" (click)="ponistiFiltere()">Poništi filtere</button>
+        </div>
+
+        <div class="filters-grid">
+          <label>
+            <span>Pretraga korisnika</span>
+
+            <input type="text" name="pretraga" [(ngModel)]="pretraga" (ngModelChange)="filtrirajZahteve()" placeholder="Ime, prezime, korisničko ime ili imejl">
+          </label>
+
+          <label>
+            <span>Tip naloga</span>
+
+            <select name="izabraniTip" [(ngModel)]="izabraniTip" (ngModelChange)="filtrirajZahteve()">
+              <option value="">Svi zahtevi</option>
+
+              <option value="sportista">Sportisti</option>
+
+              <option value="zaposleni">Zaposleni</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="loading-card" *ngIf="ucitavanje">Učitavanje zahteva za registraciju...</div>
+
+      <div class="requests-grid" *ngIf="!ucitavanje">
+        <article class="request-card" *ngFor="let zahtev of prikazaniZahtevi">
+          <div class="request-card-header">
+            <div class="user-preview">
+              <img [src]="putanjaSlike(zahtev.slika)" [alt]="zahtev.ime">
+
+              <div>
+                <strong>{{zahtev.ime}} {{zahtev.prezime}}</strong>
+
+                <small>@{{zahtev.username}}</small>
+              </div>
+            </div>
+
+            <span class="type-badge" [class.type-badge--athlete]="zahtev.tip === 'sportista'" [class.type-badge--employee]="zahtev.tip === 'zaposleni'">
+              {{nazivTipa(zahtev.tip)}}
+            </span>
+          </div>
+
+          <div class="request-details">
+            <div class="detail-row">
+              <span>Imejl</span>
+
+              <strong>{{zahtev.imejl}}</strong>
+            </div>
+
+            <div class="detail-row">
+              <span>Telefon</span>
+
+              <strong>{{zahtev.telefon}}</strong>
+            </div>
+
+            <div class="detail-row">
+              <span>Sportovi</span>
+
+              <strong>{{opisSportova(zahtev)}}</strong>
+            </div>
+          </div>
+
+          <div class="employee-details" *ngIf="zahtev.tip === 'zaposleni'">
+
+            <div class="detail-row">
+              <span>Adresa sedišta</span>
+
+              <strong>{{ zahtev.adresaSedista || 'Nije navedeno' }}</strong>
+            </div>
+
+            <div class="detail-row">
+              <span>Matični broj</span>
+
+              <strong>{{ zahtev.maticniBroj || 'Nije navedeno' }}</strong>
+            </div>
+
+            <div class="detail-row">
+              <span>PIB</span>
+
+              <strong>{{ zahtev.pib || 'Nije navedeno' }}</strong>
+            </div>
+          </div>
+
+          <div class="request-actions">
+            <button type="button" class="reject-button" [disabled]="obrada" (click)="odbijZahtev(zahtev)">Odbijte</button>
+
+            <button type="button" class="approve-button" [disabled]="obrada" (click)="odobriZahtev(zahtev)">Odobrite</button>
+          </div>
+        </article>
+
+        <div class="empty-card" *ngIf="prikazaniZahtevi.length === 0">
+          <h3>Nema zahteva</h3>
+
+          <p>Trenutno nema zahteva koji odgovaraju izabranim kriterijumima.</p>
+        </div>
+      </div>
+
+      <p class="server-message" [class.server-message--success]="uspesnaPoruka" *ngIf="poruka">{{poruka}}</p>
+    </section>
+  </main>
+
+  <app-public-footer></app-public-footer>
+</div>

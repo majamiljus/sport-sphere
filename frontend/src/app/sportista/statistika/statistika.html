@@ -1,0 +1,73 @@
+<div class="page-shell">
+  <app-sportista-header></app-sportista-header>
+  <main class="statistics-page">
+    <section class="hero">
+      <span class="eyebrow">PREGLED SISTEMA</span>
+      <h1>Statistika</h1>
+      <p>Pregled odigranih i rezervisanih termina, mesečne aktivnosti i potrošnje na sportsku opremu svih sportista.</p>
+    </section>
+    <div class="message" *ngIf="ucitavanje">
+      Učitavanje statistike...
+    </div>
+    <div class="message message--error" *ngIf="!ucitavanje && greska">
+      {{greska}}
+    </div>
+    <ng-container *ngIf="!ucitavanje && !greska && podaci">
+      <section class="content-section">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">TERMINI PO SPORTOVIMA</span>
+            <h2>Odigrani i rezervisani termini</h2>
+          </div>
+          <p>Poređenje broja odigranih i trenutno rezervisanih termina po svakom sportu.</p>
+        </div>
+        <ng-container *ngIf="podaci.terminiPoSportovima.length> 0"
+        >
+          <div class="chart-card">
+            <div class="chart-container chart-container--large">
+              <canvas #terminiGrafik></canvas>
+            </div>
+          </div>
+        </ng-container>
+        <div class="empty-state" *ngIf=" podaci.terminiPoSportovima.length === 0 ">
+          Nema podataka o terminima po sportovima.
+        </div>
+      </section>
+      <section class="content-section">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">MESEČNA AKTIVNOST</span>
+            <h2>Aktivnost po mesecima ove godine</h2>
+          </div>
+          <p>Linearni pregled broja odigranih i rezervisanih termina tokom vremena.</p>
+        </div>
+        <div class="chart-card">
+          <div class="chart-container">
+            <canvas #aktivnostGrafik></canvas>
+          </div>
+        </div>
+      </section>
+      <section class="content-section">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">SPORTSKA OPREMA</span>
+            <h2>Potrošnja po sportovima</h2>
+          </div>
+          <p>Ukupna vrednost kupljene opreme grupisana prema sportu kojem proizvod pripada.</p>
+        </div>
+        <ng-container *ngIf="podaci.potrosnjaPoSportovima.length> 0"
+        >
+          <div class="chart-card">
+            <div class="chart-container chart-container--spending">
+              <canvas #potrosnjaGrafik></canvas>
+            </div>
+          </div>
+        </ng-container>
+        <div class="empty-state" *ngIf=" podaci.potrosnjaPoSportovima.length === 0 ">
+          Još nema realizovanih porudžbina opreme.
+        </div>
+      </section>
+    </ng-container>
+  </main>
+  <app-public-footer></app-public-footer>
+</div>

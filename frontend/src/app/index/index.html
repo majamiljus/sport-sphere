@@ -1,0 +1,172 @@
+<div class="page-shell">
+  <app-public-header></app-public-header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">SPORT • REKREACIJA • ZAJEDNICA</span>
+        <h1>SPORT<br>SPHERE</h1>
+        <p>Pronađi najbolje sportske objekte, aktuelne promocije i teren za svoju sledeću igru.</p>
+
+        <div class="hero-actions">
+          <a class="primary-button" href="#pretraga">Pronađi objekat</a>
+          <a class="secondary-button" routerLink="/registracija">Pridruži se</a>
+        </div>
+
+        <div class="active-stat" *ngIf="podaciPocetneStranice">
+          <strong>{{podaciPocetneStranice.brojAktivnihObjekata}}</strong>
+          <span>aktivnih sportskih objekata</span>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <img src="/sports-hero.jpg" alt="Ilustracija različitih sportova">
+        <span class="hero-badge">GET IN<br>THE GAME.</span>
+      </div>
+    </section>
+
+    <p class="error-message" *ngIf="porukaGreske">{{porukaGreske}}</p>
+
+    <section id="objekti" class="content-section">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">NAJBOLJE OCENJENI</span>
+          <h2>TOP objekti</h2>
+        </div>
+      </div>
+
+      <div class="card-grid top-grid" *ngIf="podaciPocetneStranice && !ucitavanjePocetneStranice">
+        <article class="facility-card" *ngFor="let objekat of podaciPocetneStranice.najboljiObjekti;let i = index">
+          <div class="card-image">
+            <img [src]="objekat.naslovnaSlika" [alt]="objekat.naziv">
+            <span class="rank">0{{i + 1}}</span>
+          </div>
+
+          <div class="card-content">
+            <div>
+              <span class="card-kicker">{{objekat.grad}}</span>
+              <h3>{{objekat.naziv}}</h3>
+            </div>
+            <span class="likes">♥ {{objekat.svidjanja}}</span>
+          </div>
+
+          <p>{{objekat.kratakOpis}}</p>
+
+          <div class="sports-list">
+            <span *ngFor="let sport of objekat.sportovi">{{sport}}</span>
+          </div>
+
+          <a [routerLink]="['/objekti',objekat.id]">Pogledaj detalje →</a>
+        </article>
+      </div>
+
+      <div class="loading-card" *ngIf="ucitavanjePocetneStranice">Učitavanje najboljih objekata...</div>
+    </section>
+
+    <section id="promocije" class="content-section promotions-section">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">AKTUELNE</span>
+          <h2>Promocije</h2>
+        </div>
+      </div>
+
+      <div class="promotion-grid" *ngIf="podaciPocetneStranice && !ucitavanjePocetneStranice">
+        <article class="promotion-card" *ngFor="let promocija of podaciPocetneStranice.promocije">
+          <span class="discount">{{tekstPopusta(promocija)}}</span>
+          <h3>{{promocija.naziv}}</h3>
+          <p>{{promocija.nazivObjekta}} · {{promocija.gradObjekta}}</p>
+          <span *ngIf="promocija.sport">{{promocija.sport}}</span>
+          <small>{{formatirajDatum(promocija.datumPocetka)}} – {{formatirajDatum(promocija.datumKraja)}}</small>
+          <a [routerLink]="['/objekti',promocija.objekatId]">Detalji objekta →</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="pretraga" class="content-section search-section">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">PRONAĐI SVOJ TEREN</span>
+          <h2>Pretraga objekata</h2>
+        </div>
+      </div>
+
+      <form class="search-form" (ngSubmit)="primeniPretragu()">
+        <label>
+          <span>Naziv objekta</span>
+          <input type="text" name="naziv" [(ngModel)]="pretraga.naziv" placeholder="npr. Olimp">
+        </label>
+
+        <div class="field">
+          <span class="field-label">Gradovi</span>
+
+          <div class="checkbox-list">
+            <label class="checkbox-option" *ngFor="let grad of podaciPocetneStranice?.gradovi">
+              <input type="checkbox" [name]="'grad-' + grad" [checked]="pretraga.gradovi.includes(grad)" (change)="promeniGrad(grad,$event)">
+              <span>{{grad}}</span>
+            </label>
+          </div>
+        </div>
+
+        <label>
+          <span>Vrsta sporta</span>
+
+          <select name="sport" [(ngModel)]="pretraga.sport">
+            <option value="">Svi sportovi</option>
+            <option *ngFor="let sport of podaciPocetneStranice?.sportovi" [value]="sport">{{sport}}</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Tip terena</span>
+
+          <select name="tipTerena" [(ngModel)]="pretraga.tipTerena">
+            <option value="">Svi tipovi</option>
+            <option value="otvoreni">Otvoreni</option>
+            <option value="zatvoreni">Zatvoreni</option>
+          </select>
+        </label>
+
+        <div class="form-actions">
+          <button type="submit">Pretraži</button>
+          <button type="button" class="clear-button" (click)="ponistiPretragu()">Poništi</button>
+        </div>
+      </form>
+
+      <div class="table-shell">
+        <table>
+          <thead>
+            <tr>
+              <th><button type="button" (click)="sortirajPo('naziv')">Naziv {{ikonicaSortiranja('naziv')}}</button></th>
+              <th><button type="button" (click)="sortirajPo('grad')">Grad {{ikonicaSortiranja('grad')}}</button></th>
+              <th><button type="button" (click)="sortirajPo('sport')">Sportovi {{ikonicaSortiranja('sport')}}</button></th>
+              <th>Reakcije</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let objekat of objekti">
+              <td>
+                <strong>{{objekat.naziv}}</strong>
+                <small>{{objekat.adresa}}</small>
+              </td>
+              <td>{{objekat.grad}}</td>
+              <td>{{objekat.sportovi.join(', ')}}</td>
+              <td>♥ {{objekat.svidjanja}} · ♡ {{objekat.nesvidjanja}}</td>
+              <td><a class="details-button" [routerLink]="['/objekti',objekat.id]">Detalji</a></td>
+            </tr>
+
+            <tr *ngIf="!ucitavanjePretrage && !objekti.length">
+              <td colspan="5" class="empty-cell">Nema objekata koji odgovaraju izabranim kriterijumima.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="table-loading" *ngIf="ucitavanjePretrage">Pretraživanje...</div>
+      </div>
+    </section>
+  </main>
+
+  <app-public-footer></app-public-footer>
+</div>

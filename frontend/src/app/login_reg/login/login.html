@@ -1,0 +1,33 @@
+<div class="page-shell">
+  <app-public-header></app-public-header>
+  <main class="auth-page-content">
+    <app-login-reg title="Dobro došli!">
+      <form class="auth-form" #loginForm="ngForm" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label for="username">Korisničko ime</label>
+          <input id="username" type="text" name="username" [(ngModel)]="username" #usernameControl="ngModel" required autocomplete="username" placeholder="Unesite korisničko ime">
+          @if(usernameControl.touched && usernameControl.invalid) {
+            <p class="field-error">Korisničko ime je obavezno.</p>
+          }
+        </div>
+        <div class="field">
+          <label for="password">Lozinka</label>
+          <div class="password-input">
+            <input id="password" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" #passwordControl="ngModel" required autocomplete="current-password" placeholder="Unesite lozinku">
+            <button class="password-toggle" type="button" (click)="showPassword = !showPassword">{{showPassword ? 'Sakrij' : 'Prikaži'}}</button>
+          </div>
+          @if(passwordControl.touched && passwordControl.invalid) {
+            <p class="field-error">Lozinka je obavezna.</p>
+          }
+        </div>
+        <div class="form-links form-links--right"><a routerLink="/zaboravljena-lozinka">Zaboravili ste lozinku?</a></div>
+        <button class="primary-button" type="submit" [disabled]="loading || loginForm.invalid">{{loading ? 'Prijavljivanje...' : 'Prijavite se'}}</button>
+        @if(message) {
+          <p class="server-message" [class.server-message--success]="messageType === 'success'">{{message}}</p>
+        }
+        <p class="form-footer">Nemate nalog? <a routerLink="/registracija">Pošaljite zahtev za registraciju</a></p>
+      </form>
+    </app-login-reg>
+  </main>
+  <app-public-footer></app-public-footer>
+</div>

@@ -1,0 +1,212 @@
+<app-zaposleni-header></app-zaposleni-header>
+
+<main>
+  <section class="page-hero">
+    <div>
+      <span class="eyebrow">REZERVACIJE I TRENINZI</span>
+      <h1>Pregled termina</h1>
+      <p>Pregledajte rezervacije terena i individualne treninge u objektima koje vodite.</p>
+    </div>
+
+    <div class="hero-statistics">
+      <div>
+        <strong>{{rezervacije.length}}</strong>
+        <span>{{tekstBrojaRezervacija()}}</span>
+      </div>
+
+      <div>
+        <strong>{{treninzi.length}}</strong>
+        <span>{{tekstBrojaTreninga()}}</span>
+      </div>
+    </div>
+  </section>
+
+  <p class="server-message" *ngIf="poruka">{{poruka}}</p>
+  <p class="loading-message" *ngIf="loading">Učitavanje rezervacija i treninga...</p>
+
+  <section class="content-section" *ngIf="!loading">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">REZERVACIJE</span>
+        <h2>Rezervacije terena</h2>
+      </div>
+
+      <p>Dugmad za potvrdu ili odjavu dostupna su od početka termina do deset minuta nakon početka.</p>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Objekat</th>
+            <th>Grad</th>
+            <th>Teren</th>
+            <th>Sport</th>
+            <th>Datum</th>
+            <th>Vreme</th>
+            <th>Status</th>
+            <th>Akcije</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let rezervacija of rezervacije">
+            <td>
+              <strong>{{rezervacija.nazivObjekta}}</strong>
+            </td>
+
+            <td>{{rezervacija.grad}}</td>
+            <td>{{rezervacija.teren}}</td>
+            <td>{{rezervacija.sport}}</td>
+            <td>{{prikaziDatum(rezervacija.pocetak)}}</td>
+            <td>{{prikaziVreme(rezervacija.pocetak)}} – {{prikaziVreme(rezervacija.kraj)}}</td>
+
+            <td>
+              <span
+                class="status"
+                [class.status--zavrsen]="rezervacija.status === 'zavrsen'"
+                [class.status--otkazan]="rezervacija.status === 'otkazan'"
+                [class.status--neodrzan]="rezervacija.status === 'neodrzan'">
+                {{nazivStatusa(rezervacija.status)}}
+              </span>
+            </td>
+
+            <td>
+              <div class="action-buttons" *ngIf="rezervacija.status === 'zakazan'">
+                <button
+                  type="button"
+                  class="reject-button"
+                  [disabled]="menjanjeStatusa"
+                  (click)="odbijRezervaciju(rezervacija)">
+                  Odbij
+                </button>
+
+                <ng-container *ngIf="mozePromenaStatusa(rezervacija.pocetak,rezervacija.status)">
+                  <button
+                    type="button"
+                    class="confirm-button"
+                    [disabled]="menjanjeStatusa"
+                    (click)="potvrdiRezervaciju(rezervacija)">
+                    Potvrdi
+                  </button>
+
+                  <button
+                    type="button"
+                    class="cancel-button"
+                    [disabled]="menjanjeStatusa"
+                    (click)="odjaviRezervaciju(rezervacija)">
+                    Odjavi
+                  </button>
+                </ng-container>
+              </div>
+
+              <span class="no-actions" *ngIf="rezervacija.status !== 'zakazan'">
+                Nema dostupnih akcija
+              </span>
+            </td>
+          </tr>
+
+          <tr *ngIf="rezervacije.length === 0">
+            <td colspan="8" class="empty-table">
+              Trenutno nema rezervacija u vašim objektima.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="content-section" *ngIf="!loading">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">INDIVIDUALNI TRENINZI</span>
+        <h2>Zakazani treninzi</h2>
+      </div>
+
+      <p>Evidentirajte da li je zakazani individualni trening završen ili nije održan.</p>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Objekat</th>
+            <th>Trener</th>
+            <th>Sport</th>
+            <th>Datum</th>
+            <th>Vreme</th>
+            <th>Cena</th>
+            <th>Status</th>
+            <th>Akcije</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let trening of treninzi">
+            <td>
+              <strong>{{trening.nazivObjekta}}</strong>
+            </td>
+
+            <td>{{trening.imeTrenera}} {{trening.prezimeTrenera}}</td>
+            <td>{{trening.sport}}</td>
+            <td>{{prikaziDatum(trening.pocetak)}}</td>
+            <td>{{prikaziVreme(trening.pocetak)}} – {{prikaziVreme(trening.kraj)}}</td>
+            <td>{{trening.cena}} RSD</td>
+
+            <td>
+              <span
+                class="status"
+                [class.status--zavrsen]="trening.status === 'zavrsen'"
+                [class.status--otkazan]="trening.status === 'otkazan'"
+                [class.status--neodrzan]="trening.status === 'neodrzan'">
+                {{nazivStatusa(trening.status)}}
+              </span>
+            </td>
+
+            <td>
+              <div class="action-buttons" *ngIf="trening.status === 'zakazan'">
+                <button
+                  type="button"
+                  class="reject-button"
+                  [disabled]="menjanjeStatusa"
+                  (click)="odbijTrening(trening)">
+                  Odbij
+                </button>
+
+                <ng-container *ngIf="mozePromenaStatusa(trening.pocetak,trening.status)">
+                  <button
+                    type="button"
+                    class="confirm-button"
+                    [disabled]="menjanjeStatusa"
+                    (click)="potvrdiTrening(trening)">
+                    Potvrdi
+                  </button>
+
+                  <button
+                    type="button"
+                    class="cancel-button"
+                    [disabled]="menjanjeStatusa"
+                    (click)="odjaviTrening(trening)">
+                    Odjavi
+                  </button>
+                </ng-container>
+              </div>
+
+              <span class="no-actions" *ngIf="trening.status !== 'zakazan'">
+                Nema dostupnih akcija
+              </span>
+            </td>
+          </tr>
+
+          <tr *ngIf="treninzi.length === 0">
+            <td colspan="8" class="empty-table">
+              Trenutno nema individualnih treninga u vašim objektima.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<app-public-footer></app-public-footer>

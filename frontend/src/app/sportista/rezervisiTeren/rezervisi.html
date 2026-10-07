@@ -1,0 +1,340 @@
+<div class="page-shell">
+  <app-sportista-header></app-sportista-header>
+
+  <main>
+    <section class="search-hero">
+      <span class="eyebrow">PRETRAGA</span>
+      <h1>Sportski objekti</h1>
+      <p>Pronađite sportski objekat, izaberite teren i rezervišite slobodan termin.</p>
+    </section>
+
+    <section class="search-section">
+      <form class="search-card" (ngSubmit)="pretrazi()">
+        <div class="search-fields">
+          <label>
+            <span>Naziv objekta</span>
+            <input type="text" name="naziv" [(ngModel)]="naziv" placeholder="Unesite naziv objekta">
+          </label>
+
+          <label>
+            <span>Grad</span>
+            <input type="text" name="grad" [(ngModel)]="grad" placeholder="Unesite grad">
+          </label>
+
+          <label>
+            <span>Sport</span>
+            <select name="sport" [(ngModel)]="sport">
+              <option value="">Svi sportovi</option>
+              <option *ngFor="let sportOpcija of sportovi" [value]="sportOpcija">{{sportOpcija}}</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Tip terena</span>
+            <select name="tipTerena" [(ngModel)]="tipTerena">
+              <option value="">Svi tipovi</option>
+              <option value="otvoreni">Otvoreni</option>
+              <option value="zatvoreni">Zatvoreni</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="search-bottom">
+          <label class="checkbox-field">
+            <input type="checkbox" name="samoSlobodniDanas" [(ngModel)]="samoSlobodniDanas">
+            <span>Samo objekti sa slobodnim terminima danas</span>
+          </label>
+
+          <div class="search-actions">
+            <button class="reset-button" type="button" (click)="ponistiPretragu()">
+              Poništi
+            </button>
+
+            <button class="primary-button search-button" type="submit" [disabled]="ucitavanjePretrage">
+              {{ucitavanjePretrage ? 'Pretraga...' : 'Pretražite'}}
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <div class="results-shell">
+        <table>
+          <thead>
+            <tr>
+              <th>Objekat</th>
+              <th>Grad</th>
+              <th>Adresa</th>
+              <th>Sportovi</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let objekat of objekti">
+              <td>
+                <strong>{{objekat.naziv}}</strong>
+              </td>
+              <td>{{objekat.grad}}</td>
+              <td>{{objekat.adresa}}</td>
+              <td>{{sportoviObjekta(objekat)}}</td>
+              <td class="details-cell">
+                <button type="button" class="details-button" (click)="izaberiObjekat(objekat)">
+                  Prikaži termine
+                </button>
+              </td>
+            </tr>
+
+            <tr *ngIf="!objekti.length && !ucitavanjePretrage">
+              <td colspan="5" class="empty-cell">
+                Nema objekata koji odgovaraju izabranim kriterijumima.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="detalji-objekta" class="content-section" *ngIf="izabraniObjekat && izabraniTeren">
+      <div class="server-message" *ngIf="!ucitavanjeTermina && !mozeDaRezervise">
+        {{poruka}}
+      </div>
+
+      <ng-container *ngIf="mozeDaRezervise">
+        <div class="object-card">
+          <img [src]="putanjaSlike(izabraniObjekat.naslovnaSlika)" [alt]="izabraniObjekat.naziv">
+
+          <div>
+            <span class="eyebrow">IZABRANI OBJEKAT</span>
+            <h2>{{izabraniObjekat.naziv}}</h2>
+            <p>{{izabraniObjekat.kratakOpis}}</p>
+            <strong>{{izabraniObjekat.adresa}}, {{izabraniObjekat.grad}}</strong>
+          </div>
+        </div>
+
+        <div class="gallery-map-section">
+          <div
+            class="gallery"
+            *ngIf="izabraniObjekat.galerija.length"
+          >
+            <img
+              *ngFor="let slika of izabraniObjekat.galerija"
+              [src]="putanjaSlike(slika)"
+              [alt]="'Galerija objekta ' + izabraniObjekat.naziv"
+            >
+          </div>
+
+          <div class="map-card" *ngIf="mapaUrl">
+            <div class="map-heading">
+              <div>
+                <span class="eyebrow">LOKACIJA</span>
+                <h3>Pronađite objekat</h3>
+              </div>
+
+              <span class="map-address">
+                {{izabraniObjekat.adresa}},
+                {{izabraniObjekat.grad}}
+              </span>
+            </div>
+
+            <iframe
+              class="object-map"
+              [src]="mapaUrl"
+              [title]="'Lokacija objekta ' + izabraniObjekat.naziv"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              allowfullscreen>
+            </iframe>
+          </div>
+        </div>
+
+        <div class="court-heading" id="terenScroll">
+          <button
+            type="button"
+            class="arrow-button"
+            (click)="promeniTeren(-1)"
+            [disabled]="izabraniObjekat.tereni.length <= 1">
+            ←
+          </button>
+
+          <div>
+            <span class="eyebrow">TEREN</span>
+            <h2>{{izabraniTeren.naziv}}</h2>
+            <p>{{izabraniTeren.sport}} · {{izabraniTeren.tip}} · {{izabraniTeren.cenaPoSatu}} RSD po satu</p>
+          </div>
+
+          <button
+            type="button"
+            class="arrow-button"
+            (click)="promeniTeren(1)"
+            [disabled]="izabraniObjekat.tereni.length <= 1">
+            →
+          </button>
+        </div>
+
+        <div
+          id="kalendar"
+          class="calendar-shell"
+          [class.calendar-shell--loading]="ucitavanjeTermina">
+
+       
+
+          <div class="calendar-toolbar">
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="promeniNedelju(-1)">
+              ← Prethodna nedelja
+            </button>
+
+            <strong>{{rasponNedelje()}}</strong>
+
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="promeniNedelju(1)">
+              Sledeća nedelja →
+            </button>
+          </div>
+
+          <div class="calendar-scroll">
+            <table class="calendar-table">
+              <thead>
+                <tr>
+                  <th>Vreme</th>
+
+                  <th *ngFor="let dan of dani">
+                    <span>{{nazivDana(dan)}}</span>
+                    <small>{{datumDana(dan)}}</small>
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr *ngFor="let sat of sati">
+                  <th>{{tekstTermina(sat)}}</th>
+
+                  <td *ngFor="let dan of dani">
+                    <button
+                      type="button"
+                      class="slot"
+                      [class.slobodan]="statusCelije(dan,sat) === 'slobodan'"
+                      [class.zauzet]="statusCelije(dan,sat) === 'zauzet'"
+                      [class.izabran]="statusCelije(dan,sat) === 'izabran'"
+                      [class.prosao]="statusCelije(dan,sat) === 'prosao'"
+                      [disabled]="statusCelije(dan,sat) === 'zauzet' || statusCelije(dan,sat) === 'prosao' || !mozeDaRezervise || ucitavanjeTermina"
+                      (click)="izaberiTermin(dan,sat)">
+                      {{tekstCelije(dan,sat)}}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="legend">
+            <span>
+              <i class="legend-free"></i>
+              Slobodno
+            </span>
+
+            <span>
+              <i class="legend-busy"></i>
+              Zauzeto
+            </span>
+
+            <span>
+              <i class="legend-selected"></i>
+              Vaš izbor
+            </span>
+          </div>
+        </div>
+
+        <div class="promotions-section">
+          <div class="promotions-heading">
+            <div>
+              <span class="eyebrow">PROMOCIJE</span>
+              <h3>Aktivne promocije za {{izabraniTeren.sport}}</h3>
+              <p>Izaberite jednu promociju koja će biti primenjena na cenu rezervacije.</p>
+            </div>
+
+            <span class="promotions-loading" *ngIf="ucitavanjePromocija">
+              Učitavanje promocija...
+            </span>
+          </div>
+
+          <div
+            class="promotion-grid"
+            *ngIf="!ucitavanjePromocija && dostupnePromocije().length > 0">
+
+            <button
+              type="button"
+              class="promotion-card"
+              *ngFor="let promocija of dostupnePromocije()"
+              [class.promotion-card--selected]="izabranaPromocijaId === promocija.id"
+              (click)="izaberiPromociju(promocija.id)">
+
+              <div class="promotion-card-top">
+                <span class="promotion-name">{{promocija.naziv}}</span>
+                <span class="promotion-check" *ngIf="izabranaPromocijaId === promocija.id">✓</span>
+              </div>
+
+              <strong class="promotion-discount">{{tekstPopusta(promocija)}}</strong>
+
+              <small class="promotion-date">
+                Važi do {{promocija.datumKraja | date:'dd.MM.yyyy.'}}
+              </small>
+
+              <span class="promotion-action">
+                {{izabranaPromocijaId === promocija.id ? 'Kliknite ponovo za uklanjanje' : 'Primeni promociju'}}
+              </span>
+            </button>
+          </div>
+
+          <div
+            class="no-promotions"
+            *ngIf="!ucitavanjePromocija && dostupnePromocije().length === 0">
+            Trenutno nema aktivnih promocija za ovaj sport.
+          </div>
+        </div>
+
+        <div class="selection-card" *ngIf="izabraniPocetak && krajIzabranogTermina">
+          <div class="selection-info">
+            <span class="eyebrow">IZABRANI TERMIN</span>
+
+            <div class="selection-title-row">
+              <h3>{{izabraniPocetak | date:'dd.MM.yyyy.'}}</h3>
+              <h4>{{izabraniPocetak | date:'HH:mm'}} – {{krajIzabranogTermina | date:'HH:mm'}}</h4>
+            </div>
+
+            <p>{{izabraniObjekat.naziv}} · {{izabraniTeren.naziv}}</p>
+
+            <div class="price-preview">
+              <span *ngIf="izabranaPromocija()">
+                <del>{{izabraniTeren.cenaPoSatu}} RSD</del>
+              </span>
+
+              <strong>{{cenaTermina()}} RSD</strong>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="primary-button reservation-button"
+            [disabled]="cuvanje || !mozeDaRezervise || ucitavanjeTermina"
+            (click)="rezervisi()">
+            {{cuvanje ? 'Rezervisanje...' : 'Rezervišite termin'}}
+          </button>
+        </div>
+      </ng-container>
+    </section>
+
+    <p
+      class="server-message"
+      [class.server-message--success]="uspesnaPoruka"
+      *ngIf="poruka && (!izabraniObjekat || mozeDaRezervise)">
+      {{poruka}}
+    </p>
+  </main>
+
+  <app-public-footer></app-public-footer>
+</div>

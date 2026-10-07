@@ -1,0 +1,250 @@
+<div class="page-shell">
+  <app-public-header></app-public-header>
+  <main class="auth-page-content">
+    <app-login-reg title="Registracija" subtitle="Kreirajte zahtev za nalog sportiste ili zaposlenog. Zahtev mora odobriti administrator." [wide]="true">
+      <form class="auth-form" #registerForm="ngForm" (ngSubmit)="posaljiZahtev()" novalidate>
+        <section class="form-section">
+          <div class="section-heading">
+            <div>
+              <span class="section-number">01</span>
+              <h2>Tip korisnika</h2>
+            </div>
+          </div>
+          <div class="role-grid">
+            <label class="choice-card" [class.choice-card--selected]="tip === 'sportista'">
+              <input type="radio" name="tip" [(ngModel)]="tip" value="sportista">
+              <span class="choice-icon">S</span>
+              <span>
+                <strong>Sportista</strong>
+                <small>Javni korisnički nalog</small>
+              </span>
+            </label>
+            <label class="choice-card" [class.choice-card--selected]="tip === 'zaposleni'">
+              <input type="radio" name="tip" [(ngModel)]="tip" value="zaposleni">
+              <span class="choice-icon">Z</span>
+              <span>
+                <strong>Zaposleni</strong>
+                <small>Nalog povezan sa sportskim objektom</small>
+              </span>
+            </label>
+          </div>
+        </section>
+        <section class="form-section">
+          <div class="section-heading">
+            <div>
+              <span class="section-number">02</span>
+              <h2>Podaci za nalog</h2>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label for="username">Korisničko ime</label>
+              <input id="username" type="text" name="username" [(ngModel)]="username" #usernameControl="ngModel" required autocomplete="username">
+              @if(usernameControl.touched && usernameControl.invalid) {
+                <p class="field-error">Korisničko ime je obavezno.</p>
+              }
+            </div>
+            <div class="field">
+              <label for="imejl">Imejl adresa</label>
+              <input id="imejl" type="email" name="imejl" [(ngModel)]="imejl" #imejlControl="ngModel" required email autocomplete="email">
+              @if(imejlControl.touched && imejlControl.hasError('required')) {
+                <p class="field-error">Imejl adresa je obavezna.</p>
+              }
+              @if(imejlControl.touched && imejlControl.hasError('email')) {
+                <p class="field-error">Unesite ispravnu imejl adresu.</p>
+              }
+            </div>
+            <div class="field">
+              <label for="password">Lozinka</label>
+              <div class="password-input">
+                <input id="password" [type]="prikaziLozinku ? 'text' : 'password'" name="password" [(ngModel)]="password" #passwordControl="ngModel" required minlength="8" maxlength="12" autocomplete="new-password">
+                <button class="password-toggle" type="button" (click)="prikaziLozinku = !prikaziLozinku">{{prikaziLozinku ? 'Sakrij' : 'Prikaži'}}</button>
+              </div>
+              @if(passwordControl.touched && passwordControl.hasError('required')) {
+                <p class="field-error">Lozinka je obavezna.</p>
+              }
+              @if(passwordControl.touched && password && !validnaLozinka()) {
+                <p class="field-error">Lozinka mora imati 8–12 karaktera, početi slovom i sadržati veliko slovo, broj i specijalni karakter.</p>
+              }
+            </div>
+            <div class="field">
+              <label for="potvrda-lozinke">Ponovite lozinku</label>
+              <input id="potvrda-lozinke" type="password" name="potvrdaLozinke" [(ngModel)]="potvrdaLozinke" #potvrdaLozinkeControl="ngModel" required autocomplete="new-password">
+              @if(potvrdaLozinkeControl.touched && potvrdaLozinkeControl.hasError('required')) {
+                <p class="field-error">Potvrda lozinke je obavezna.</p>
+              }
+              @if(potvrdaLozinkeControl.touched && potvrdaLozinke && password !== potvrdaLozinke) {
+                <p class="field-error">Lozinke se ne podudaraju.</p>
+              }
+            </div>
+          </div>
+        </section>
+        <section class="form-section">
+          <div class="section-heading">
+            <div>
+              <span class="section-number">03</span>
+              <h2>Lični podaci</h2>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label for="ime">Ime</label>
+              <input id="ime" type="text" name="ime" [(ngModel)]="ime" #imeControl="ngModel" required autocomplete="given-name">
+              @if(imeControl.touched && imeControl.invalid) {
+                <p class="field-error">Ime je obavezno.</p>
+              }
+            </div>
+            <div class="field">
+              <label for="prezime">Prezime</label>
+              <input id="prezime" type="text" name="prezime" [(ngModel)]="prezime" #prezimeControl="ngModel" required autocomplete="family-name">
+              @if(prezimeControl.touched && prezimeControl.invalid) {
+                <p class="field-error">Prezime je obavezno.</p>
+              }
+            </div>
+            <div class="field">
+              <label for="telefon">Kontakt telefon</label>
+              <input id="telefon" type="tel" name="telefon" [(ngModel)]="telefon" #telefonControl="ngModel" required autocomplete="tel">
+              @if(telefonControl.touched && telefonControl.invalid) {
+                <p class="field-error">Kontakt telefon je obavezan.</p>
+              }
+              @if(telefonControl.touched && telefon && !validanTelefon()) {
+                <p class="field-error">Telefon mora sadržati od 8 do 15 cifara i može početi znakom +.</p>
+              }
+            </div>
+            <div class="field">
+              <label for="sportovi">Sportovi koji vas zanimaju</label>
+              <select id="sportovi" name="izabraniSportovi" [(ngModel)]="izabraniSportovi" multiple size="6">
+                @for(sport of sportovi; track sport) {
+                  <option [value]="sport">{{sport}}</option>
+                }
+              </select>
+              <div class="field-hint-row">
+                <span>Držite Ctrl za izbor više stavki.</span>
+                <strong>{{izabraniSportovi.length}}/5</strong>
+              </div>
+              @if(izabraniSportovi.length > 5) {
+                <p class="field-error">Možete izabrati najviše pet sportova.</p>
+              }
+            </div>
+          </div>
+        </section>
+        @if(tip === 'zaposleni') {
+          <section class="form-section">
+            <div class="section-heading">
+              <div>
+                <span class="section-number">04</span>
+                <h2>Podaci zaposlenog</h2>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="field">
+                <label for="adresaSedista">Adresa sedišta</label>
+                <input id="adresaSedista" type="text" name="adresaSedista" [(ngModel)]="adresaSedista" #adresaSedistaControl="ngModel" required>
+                @if(adresaSedistaControl.touched && adresaSedistaControl.invalid) {
+                  <p class="field-error">Adresa sedišta je obavezna.</p>
+                }
+              </div>
+              <div class="field">
+                <label for="maticniBroj">Matični broj</label>
+                <input id="maticniBroj" type="text" name="maticniBroj" [(ngModel)]="maticniBroj" #maticniBrojControl="ngModel" required pattern="^\d{8}$" maxlength="8" inputmode="numeric" placeholder="Tačno 8 cifara">
+                @if(maticniBrojControl.touched && !validanMaticniBroj()) {
+                  <p class="field-error">Matični broj mora imati tačno 8 cifara.</p>
+                }
+              </div>
+              <div class="field">
+                <label for="pib">PIB</label>
+                <input id="pib" type="text" name="pib" [(ngModel)]="pib" #pibControl="ngModel" required pattern="^[1-9]\d{8}$" maxlength="9" inputmode="numeric" placeholder="9 cifara, prva nije 0">
+                @if(pibControl.touched && !validanPib()) {
+                  <p class="field-error">PIB mora imati tačno 9 cifara i ne sme počinjati nulom.</p>
+                }
+              </div>
+            </div>
+            <div class="facility-choice-section">
+              <div class="section-heading section-heading--subsection">
+                <div><h3>Izbor sportskog objekta</h3></div>
+              </div>
+              <div class="role-grid">
+                <label class="choice-card" [class.choice-card--selected]="izborObjekta === 'postojeci'">
+                  <input type="radio" name="izborObjekta" [(ngModel)]="izborObjekta" value="postojeci" (ngModelChange)="promeniIzborObjekta()">
+                  <span class="choice-icon">P</span>
+                  <span>
+                    <strong>Postojeći objekat</strong>
+                    <small>Želim da radim u objektu koji već postoji</small>
+                  </span>
+                </label>
+                <label class="choice-card" [class.choice-card--selected]="izborObjekta === 'novi_kasnije'">
+                  <input type="radio" name="izborObjekta" [(ngModel)]="izborObjekta" value="novi_kasnije" (ngModelChange)="promeniIzborObjekta()">
+                  <span class="choice-icon">N</span>
+                  <span>
+                    <strong>Novi objekat</strong>
+                    <small>Napraviću novi objekat nakon odobrenja naloga</small>
+                  </span>
+                </label>
+              </div>
+              @if(izborObjekta === 'postojeci') {
+                <div class="field facility-select-field">
+                  <label for="objekat">Izaberite sportski objekat</label>
+                  <select id="objekat" name="objekatId" [(ngModel)]="objekatId" required [disabled]="ucitavanjeObjekata">
+                    <option value="">{{ucitavanjeObjekata ? 'Učitavanje objekata...' : 'Izaberite objekat'}}</option>
+                    @for(objekat of dostupniObjekti; track objekat.id) {
+                      <option [value]="objekat.id">{{objekat.naziv}}</option>
+                    }
+                  </select>
+                  <p class="field-hint">Prikazani su samo aktivni objekti koji imaju manje od dva zaposlena.</p>
+                  @if(porukaObjekata) {
+                    <p class="field-error">{{porukaObjekata}}</p>
+                  }
+                </div>
+              } @else {
+                <div class="facility-info-box">
+                  <strong>Novi objekat napravićete nakon odobrenja naloga.</strong>
+                  <p>Nakon prijavljivanja biće vam omogućena posebna forma za unos podataka o novom sportskom objektu.</p>
+                </div>
+              }
+            </div>
+          </section>
+        }
+        <section class="form-section">
+          <div class="section-heading">
+            <div>
+              <span class="section-number">{{tip === 'zaposleni' ? '05' : '04'}}</span>
+              <h2>Profilna slika</h2>
+            </div>
+          </div>
+          <div class="profile-editor">
+            <div class="profile-preview">
+              <img [src]="pregledSlike" alt="Pregled profilne slike">
+              <span>{{slika ? 'Slika spremna' : 'Podrazumevana slika'}}</span>
+            </div>
+            <div class="profile-actions">
+              <div class="field">
+                <label for="slika">Otpremite postojeću fotografiju</label>
+                <input #inputSlike id="slika" class="file-input" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" (change)="izaberiSliku($event)">
+                <p class="field-hint">PNG ili JPG/JPEG, najviše 5 MB.</p>
+              </div>
+              <div class="avatar-actions">
+                <button class="secondary-button" type="button" (click)="generisiAvatar()">Generišite avatar</button>
+                <button class="text-button" type="button" (click)="ukloniSliku(inputSlike)">Uklonite izabranu sliku</button>
+              </div>
+              @if(informacijaAvatara) {
+                <p class="inline-message">{{informacijaAvatara}}</p>
+              }
+              @if(porukaSlike) {
+                <p class="field-error">{{porukaSlike}}</p>
+              }
+            </div>
+          </div>
+        </section>
+        <div class="registration-actions">
+          <button class="primary-button" type="submit" [disabled]="ucitavanje">{{ucitavanje ? 'Slanje zahteva...' : 'Pošaljite zahtev za registraciju'}}</button>
+          <a class="secondary-button link-button" routerLink="/">Odustanite</a>
+        </div>
+        @if(poruka) {
+          <p class="server-message" [class.server-message--success]="tipPoruke === 'success'">{{poruka}}</p>
+        }
+        <p class="form-footer">Već imate nalog? <a routerLink="/">Prijavite se</a></p>
+      </form>
+    </app-login-reg>
+  </main>
+  <app-public-footer></app-public-footer>
+</div>

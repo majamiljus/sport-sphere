@@ -1,0 +1,278 @@
+<app-zaposleni-header></app-zaposleni-header>
+<main class="upravljanje-page">
+  <section class="hero">
+    <div>
+      <span class="eyebrow">UPRAVLJANJE PONUDOM</span>
+      <h1>Promocije i oprema</h1>
+      <p>Upravljajte promocijama, katalogom sportske opreme i pristiglim porudžbinama.</p>
+    </div>
+  </section>
+  <section class="content-grid">
+    <article id="forma-promocije" class="card form-card">
+      <div class="card-heading">
+        <div>
+          <span class="section-number">01</span>
+          <h2>{{ promocijaZaIzmenuId ? 'Ažurirajte promociju' : 'Kreirajte promociju' }}</h2>
+        </div>
+        <button type="button" class="secondary-button" *ngIf="promocijaZaIzmenuId" (click)="ponistiFormuPromocije()">Odustani od izmene</button>
+      </div>
+      <form #promocijaForma="ngForm" (ngSubmit)="sacuvajPromociju()">
+        <div class="form-grid">
+          <div class="field field-wide">
+            <label for="nazivPromocije">Naziv promocije</label>
+            <input id="nazivPromocije" type="text" name="nazivPromocije" [(ngModel)]="formaPromocije.naziv" placeholder="Na primer: Letnji popust" required>
+          </div>
+          <div class="field">
+            <label for="objekatPromocije">Sportski objekat</label>
+            <select id="objekatPromocije" name="objekatPromocije" [(ngModel)]="formaPromocije.objekatId" (change)="promenjenObjekatForme()" [disabled]="ucitavanjeObjekata" required>
+              <option value="">{{ ucitavanjeObjekata ? 'Učitavanje objekata...' : 'Izaberite objekat' }}</option>
+              <option *ngFor="let objekat of objekti" [value]="objekat.id">{{objekat.naziv}} — {{objekat.grad}}</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sportPromocije">Vrsta sporta</label>
+            <select id="sportPromocije" name="sportPromocije" [(ngModel)]="formaPromocije.sport" [disabled]="!formaPromocije.objekatId">
+              <option value="">Svi sportovi</option>
+              <option *ngFor="let sport of sportoviIzabranogObjekta()" [value]="sport">{{sport}}</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="datumPocetka">Datum početka</label>
+            <input id="datumPocetka" type="date" name="datumPocetka" [(ngModel)]="formaPromocije.datumPocetka" required>
+          </div>
+          <div class="field">
+            <label for="datumKraja">Datum završetka</label>
+            <input id="datumKraja" type="date" name="datumKraja" [(ngModel)]="formaPromocije.datumKraja" [min]="formaPromocije.datumPocetka" required>
+          </div>
+          <div class="field">
+            <label for="tipPopusta">Tip popusta</label>
+            <select id="tipPopusta" name="tipPopusta" [(ngModel)]="formaPromocije.tipPopusta" required>
+              <option value="procenat">Procentualni popust</option>
+              <option value="fiksni">Fiksni iznos</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="vrednostPopusta">Vrednost popusta</label>
+            <div class="input-with-suffix">
+              <input id="vrednostPopusta" type="number" name="vrednostPopusta" [(ngModel)]="formaPromocije.vrednostPopusta" min="1" [max]="formaPromocije.tipPopusta === 'procenat'? 100 : null" required>
+              <span>{{ formaPromocije.tipPopusta === 'procenat' ? '%' : 'RSD' }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="secondary-button" (click)="ponistiFormuPromocije()">Poništi</button>
+          <button type="submit" class="primary-button" [disabled]="cuvanjePromocije">{{ cuvanjePromocije ? 'Čuvanje...' : promocijaZaIzmenuId ? 'Sačuvajte izmene' : 'Kreirajte promociju' }}</button>
+        </div>
+        <div class="message message-success" *ngIf="porukaPromocije">{{porukaPromocije}}</div>
+        <div class="message message-error" *ngIf="greskaPromocije">{{greskaPromocije}}</div>
+      </form>
+    </article>
+    <article class="card">
+      <div class="card-heading">
+        <div>
+          <span class="section-number">02</span>
+          <h2>Postojeće promocije</h2>
+        </div>
+        <div class="filters">
+          <div class="filter-field">
+            <label for="objekatFilter">Sportski objekat</label>
+            <select id="objekatFilter" [(ngModel)]="izabraniObjekatFilter">
+              <option value="">Svi objekti</option>
+              <option *ngFor="let objekat of objekti" [value]="objekat.id">{{objekat.naziv}}</option>
+            </select>
+          </div>
+          <button type="button" class="cancel-button cleanup-button" [disabled]="brisanjeIsteklihPromocija || ucitavanjePromocija" (click)="obrisiIsteklePromocije()">
+            {{brisanjeIsteklihPromocija ? 'Brisanje...' : 'Obriši istekle promocije'}}
+          </button>
+        </div>
+      </div>
+      <div class="empty-state" *ngIf="ucitavanjePromocija">Učitavanje promocija...</div>
+      <div class="empty-state" *ngIf="!ucitavanjePromocija && filtriranePromocije().length === 0">Trenutno nema promocija.</div>
+      <div class="promotion-grid" *ngIf="!ucitavanjePromocija && filtriranePromocije().length > 0">
+        <article class="promotion-card" *ngFor="let promocija of filtriranePromocije()" [class.card-inactive]="!promocijaAktivna(promocija)">
+          <div class="item-card-top">
+            <div class="item-icon">%</div>
+            <div>
+              <h3>{{promocija.naziv}}</h3>
+              <span class="status" [class.status-active]="promocijaAktivna(promocija)" [class.status-inactive]="!promocijaAktivna(promocija)">{{ promocijaAktivna(promocija) ? 'Aktivna' : 'Nije aktivna' }}</span>
+            </div>
+          </div>
+          <strong class="highlight-value">{{tekstPopusta(promocija)}}</strong>
+          <div class="info-grid">
+            <div>
+              <span>Objekat</span>
+              <strong>{{promocija.nazivObjekta}}</strong>
+              <small>{{promocija.gradObjekta}}</small>
+            </div>
+            <div>
+              <span>Sport</span>
+              <strong>{{promocija.sport || 'Svi sportovi'}}</strong>
+            </div>
+          </div>
+          <div class="period">{{formatirajDatum(promocija.datumPocetka)}} – {{formatirajDatum(promocija.datumKraja)}}</div>
+          <button type="button" class="edit-button" (click)="izmeniPromociju(promocija)">Ažurirajte promociju</button>
+        </article>
+      </div>
+    </article>
+    <article id="forma-opreme" class="card form-card">
+      <div class="card-heading">
+        <div>
+          <span class="section-number">03</span>
+          <h2>{{ opremaZaIzmenuId ? 'Ažurirajte opremu' : 'Dodajte opremu' }}</h2>
+        </div>
+        <button type="button" class="secondary-button" *ngIf="opremaZaIzmenuId" (click)="ponistiFormuOpreme()">Odustani od izmene</button>
+      </div>
+      <form #opremaForma="ngForm" (ngSubmit)="sacuvajOpremu()">
+        <div class="form-grid">
+          <div class="field">
+            <label for="nazivOpreme">Naziv opreme</label>
+            <input id="nazivOpreme" type="text" name="nazivOpreme" [(ngModel)]="formaOpreme.naziv" placeholder="Na primer: Košarkaška lopta" required>
+          </div>
+          <div class="field">
+            <label for="sportOpreme">Sport</label>
+            <select id="sportOpreme" name="sportOpreme" [(ngModel)]="formaOpreme.sport" required>
+              <option value="">Izaberite sport</option>
+              <option *ngFor="let sportOpcija of sportovi" [value]="sportOpcija">{{sportOpcija}}</option>
+            </select>
+          </div>
+          <div class="field field-image">
+            <label for="slikaOpreme">Slika opreme</label>
+            <div class="image-upload">
+              <input #slikaInput id="slikaOpreme" type="file" accept="image/png,image/jpeg,image/webp" (change)="izabranaSlikaOpreme($event)">
+              <button type="button" class="remove-image-button" *ngIf="slikaOpreme" (click)="ukloniIzabranuSliku(slikaInput)">Ukloni izbor</button>
+              <small>Ako ne izaberete sliku, koristiće se logo.png.</small>
+            </div>
+          </div>
+          <div class="field">
+            <label for="cenaOpreme">Cena</label>
+            <div class="input-with-suffix">
+              <input id="cenaOpreme" type="number" name="cenaOpreme" [(ngModel)]="formaOpreme.cena" min="1" required>
+              <span>RSD</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="stanjeOpreme">Stanje na zalihama</label>
+            <input id="stanjeOpreme" type="number" name="stanjeOpreme" [(ngModel)]="formaOpreme.stanje" min="0" step="1" required>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="secondary-button" (click)="ponistiFormuOpreme()">Poništi</button>
+          <button type="submit" class="primary-button" [disabled]="cuvanjeOpreme">{{ cuvanjeOpreme ? 'Čuvanje...' : opremaZaIzmenuId ? 'Sačuvajte izmene' : 'Dodajte opremu' }}</button>
+        </div>
+        <div class="message message-success" *ngIf="porukaOpreme">{{porukaOpreme}}</div>
+        <div class="message message-error" *ngIf="greskaOpreme">{{greskaOpreme}}</div>
+      </form>
+    </article>
+    <article class="card">
+      <div class="card-heading catalog-heading">
+        <div>
+          <span class="section-number">04</span>
+          <h2>Katalog opreme</h2>
+        </div>
+        <div class="filters">
+          <div class="filter-field">
+            <label for="nazivOpremeFilter">Pretraga</label>
+            <input id="nazivOpremeFilter" type="text" [(ngModel)]="nazivOpremeFilter" placeholder="Naziv opreme">
+          </div>
+          <div class="filter-field">
+            <label for="sportOpremeFilter">Sport</label>
+            <select id="sportOpremeFilter" [(ngModel)]="sportOpremeFilter">
+              <option value="">Svi sportovi</option>
+              <option *ngFor="let sport of sportoviOpreme()" [value]="sport">{{sport}}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="empty-state" *ngIf="ucitavanjeOpreme">Učitavanje opreme...</div>
+      <div class="empty-state" *ngIf="!ucitavanjeOpreme && filtriranaOprema().length === 0">Nema opreme koja odgovara izabranim kriterijumima.</div>
+      <div class="equipment-grid" *ngIf="!ucitavanjeOpreme && filtriranaOprema().length > 0">
+        <article class="equipment-card" *ngFor="let proizvod of filtriranaOprema()">
+          <img [src]="putanjaSlike(proizvod.slika)" [alt]="proizvod.naziv" (error)="greskaSlike($event)">
+          <div class="equipment-content">
+            <span class="sport-badge">{{proizvod.sport}}</span>
+            <h3>{{proizvod.naziv}}</h3>
+            <div class="equipment-data">
+              <div>
+                <span>Cena</span>
+                <strong>{{proizvod.cena}} RSD</strong>
+              </div>
+              <div>
+                <span>Stanje</span>
+                <strong [class.out-of-stock]="proizvod.stanje === 0">{{ proizvod.stanje === 0 ? 'Nema na stanju' : proizvod.stanje }}</strong>
+              </div>
+            </div>
+            <button type="button" class="edit-button" (click)="izmeniOpremu(proizvod)">Ažurirajte cenu i zalihe</button>
+          </div>
+        </article>
+      </div>
+    </article>
+    <article class="card">
+     <div class="card-heading">
+        <div>
+          <span class="section-number">05</span>
+          <h2>Obrada porudžbina</h2>
+        </div>
+        <div class="filters">
+          <div class="filter-field">
+            <label for="statusPorudzbine">Status</label>
+            <select id="statusPorudzbine" [(ngModel)]="statusPorudzbineFilter">
+              <option value="">Svi statusi</option>
+              <option value="naruceno">Prihvaćeno</option>
+              <option value="preuzeto">Preuzeto</option>
+              <option value="otkazano">Otkazano</option>
+            </select>
+          </div>
+          <button type="button" class="cancel-button cleanup-button" [disabled]="brisanjeOtkazanihPorudzbina || ucitavanjePorudzbina" (click)="obrisiOtkazanePorudzbine()">
+            {{brisanjeOtkazanihPorudzbina ? 'Brisanje...' : 'Obriši otkazane porudžbine'}}
+          </button>
+        </div>
+      </div>
+      <div class="empty-state" *ngIf="ucitavanjePorudzbina">Učitavanje porudžbina...</div>
+      <div class="empty-state" *ngIf="!ucitavanjePorudzbina && filtriranePorudzbine().length === 0">Nema porudžbina sa izabranim statusom.</div>
+      <div class="orders-list" *ngIf="!ucitavanjePorudzbina && filtriranePorudzbine().length > 0">
+        <article class="order-card" *ngFor="let porudzbina of filtriranePorudzbine()">
+          <div class="order-header">
+            <div>
+              <span class="order-label">Porudžbina</span>
+              <h3>{{porudzbina.username}}</h3>
+              <small>{{formatirajDatumVreme(porudzbina.datumPorudzbine)}}</small>
+            </div>
+            <span class="order-status" [class.order-status-accepted]="porudzbina.status === 'naruceno'" [class.order-status-collected]="porudzbina.status === 'preuzeto'" [class.order-status-cancelled]="porudzbina.status === 'otkazano'">{{tekstStatusaPorudzbine(porudzbina.status)}}</span>
+          </div>
+          <div class="order-items">
+            <div class="order-item" *ngFor="let stavka of porudzbina.stavke">
+              <img [src]="putanjaSlike(stavka.slika)" [alt]="stavka.naziv" (error)="greskaSlike($event)">
+              <div>
+                <strong>{{stavka.naziv}}</strong>
+                <span>{{stavka.sport}}</span>
+              </div>
+              <span>{{stavka.kolicina}} × {{stavka.cena}} RSD</span>
+            </div>
+          </div>
+          <div class="order-footer">
+            <div class="order-summary">
+              <span>
+                Broj artikala:
+                <strong>{{brojStavki(porudzbina)}}</strong>
+              </span>
+              <span>
+                Ukupno:
+                <strong>{{porudzbina.ukupnaCena}} RSD</strong>
+              </span>
+            </div>
+          <div class="order-actions" *ngIf="porudzbina.status === 'naruceno'">
+              <button type="button" class="pickup-button" [disabled]="obradaPorudzbineId === porudzbina.id" (click)="oznaciKaoPreuzeto(porudzbina)">
+                {{obradaPorudzbineId === porudzbina.id ? 'Obrada...' : 'Označi kao preuzeto'}}
+              </button>
+              <button type="button" class="cancel-button" [disabled]="obradaPorudzbineId === porudzbina.id" (click)="otkaziPorudzbinu(porudzbina)">
+                {{obradaPorudzbineId === porudzbina.id ? 'Obrada...' : 'Otkaži porudžbinu'}}
+              </button>
+            </div>
+             <span class="no-action" *ngIf="porudzbina.status !== 'naruceno'">Nema dostupnih akcija</span>
+          </div>
+        </article>
+      </div>
+    </article>
+  </section>
+</main>
+<app-public-footer></app-public-footer>

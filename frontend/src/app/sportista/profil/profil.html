@@ -1,0 +1,224 @@
+<div class="page-shell">
+  <app-sportista-header></app-sportista-header>
+  <main>
+    <div class="message" *ngIf="loading">
+      Učitavanje profila...
+    </div>
+    <ng-container *ngIf="!loading && profil">
+      <section class="profile-hero">
+        <div>
+          <span class="eyebrow">SPORTISTA</span>
+          <h1>{{profil.ime}} {{profil.prezime}}</h1>
+          <p>Ažurirajte lične podatke, profilnu sliku i omiljene sportove.</p>
+        </div>
+        <img [src]="pregledSlike" [alt]="profil.ime">
+      </section>
+      <section class="content-section">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">LIČNI PODACI</span>
+            <h2>Vaš nalog</h2>
+          </div>
+        </div>
+        <form class="profile-card" (ngSubmit)="sacuvajIzmene()">
+          <div class="form-grid">
+            <label>
+              <span>Korisničko ime</span>
+              <input type="text" name="korisnickoIme" [(ngModel)]=" profil.username " disabled>
+            </label>
+            <label>
+              <span>Ime</span>
+              <input type="text" name="ime" [(ngModel)]="profil.ime" required>
+            </label>
+            <label>
+              <span>Prezime</span>
+              <input type="text" name="prezime" [(ngModel)]="profil.prezime" required>
+            </label>
+            <label>
+              <span>Kontakt telefon</span>
+              <input type="tel" name="telefon" [(ngModel)]="profil.telefon" required>
+            </label>
+            <label>
+              <span>Imejl adresa</span>
+              <input type="email" name="imejl" [(ngModel)]="profil.imejl" required>
+            </label>
+          </div>
+          <div class="profile-image-section">
+            <img [src]="pregledSlike" alt="Profilna slika">
+            <div class="profile-image-controls">
+              <label class="file-field">
+                <span>Promenite profilnu sliku</span>
+                <input #inputSlike type="file" accept=" .png, .jpg, .jpeg, image/png, image/jpeg " (change)="izaberiSliku($event)">
+                <small>PNG ili JPG/JPEG, najviše 5 MB.</small>
+              </label>
+              <div class="avatar-actions">
+                <button type="button" class="generate-avatar-button" (click)="generisiAvatar()">
+                  Generiši avatar
+                </button>
+                <button type="button" class="remove-image-button" (click)=" ukloniIzabranuSliku( inputSlike ) ">
+                  Ukloni izabranu sliku
+                </button>
+              </div>
+              <p class=" image-message image-message--success " *ngIf="informacijaAvatara">{{informacijaAvatara}}</p>
+              <p class=" image-message image-message--error " *ngIf="porukaSlike">{{porukaSlike}}</p>
+            </div>
+          </div>
+          <div class="sports-section">
+            <div>
+              <h3>Omiljeni sportovi</h3>
+              <p>Možete izabrati najviše pet sportova.</p>
+            </div>
+            <div class="sports-grid">
+              <label class="sport-option" *ngFor="let sport of sportovi">
+                <input type="checkbox" [name]="'sport-' + sport" [checked]=" profil.sportovi.includes(sport) " (change)=" promeniSport( sport, $event ) ">
+                <span>{{sport}}</span>
+              </label>
+            </div>
+          </div>
+          <button class="primary-button" type="submit" [disabled]="cuvanje">
+            {{cuvanje ? 'Čuvanje...' : 'Sačuvajte izmene'}}
+          </button>
+        </form>
+      </section>
+      <p class="server-message" [class.server-message--success]=" uspesnaPoruka " *ngIf="poruka">{{poruka}}</p>
+      <section class="content-section">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">VAŠE AKTIVNOSTI</span>
+            <h2>Rezervacije</h2>
+          </div>
+          <p>Prethodne i aktuelne rezervacije terena i hala.</p>
+        </div>
+        <div class="table-shell">
+          <table>
+            <thead>
+              <tr>
+                <th>
+                  <button type="button" (click)=" sortirajPo( 'nazivObjekta' ) ">
+                    Objekat
+                    {{ikonicaSortiranja( 'nazivObjekta' )}}
+                  </button>
+                </th>
+                <th>
+                  <button type="button" (click)="sortirajPo('grad')">
+                    Grad
+                    {{ikonicaSortiranja( 'grad' )}}
+                  </button>
+                </th>
+                <th>
+                  <button type="button" (click)="sortirajPo('teren')">
+                    Teren/hala
+                    {{ikonicaSortiranja( 'teren' )}}
+                  </button>
+                </th>
+                <th>
+                  <button type="button" (click)="sortirajPo('sport')">
+                    Sport
+                    {{ikonicaSortiranja( 'sport' )}}
+                  </button>
+                </th>
+                <th>
+                  <button type="button" (click)=" sortirajPo('pocetak') ">
+                    Termin
+                    {{ikonicaSortiranja( 'pocetak' )}}
+                  </button>
+                </th>
+                <th>
+                  <button type="button" (click)="sortirajPo('status')">
+                    Status
+                    {{ikonicaSortiranja( 'status' )}}
+                  </button>
+                </th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor=" let rezervacija of rezervacije ">
+                <td>
+                  <strong>{{rezervacija.nazivObjekta}}</strong>
+                </td>
+                <td>{{rezervacija.grad}}</td>
+                <td>{{rezervacija.teren}}</td>
+                <td>{{rezervacija.sport}}</td>
+                <td>
+                  <span>{{rezervacija.pocetak | date: 'dd.MM.yyyy. HH:mm'}}</span>
+                  <small>do {{rezervacija.kraj | date:'HH:mm'}}</small>
+                </td>
+                <td>
+                  <span class="status" [class.status--pending]=" rezervacija.status === 'zakazan' " [class.status--confirmed]=" rezervacija.status === 'zavrsen' " [class.status--cancelled]=" rezervacija.status === 'otkazan' " [class.status--missed]=" rezervacija.status === 'neodrzan' ">{{nazivStatusa(rezervacija.status)}}</span>
+                </td>
+                <td>
+                  <button *ngIf=" mozeDaOtkaze( rezervacija ) " class="cancel-button" type="button" (click)=" otkaziRezervaciju( rezervacija ) ">
+                    Otkaži
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="!rezervacije.length">
+                <td colspan="7" class="empty-cell">Trenutno nemate rezervacija.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="content-section">
+        <div class="section-heading orders-heading">
+          <div>
+            <span class="eyebrow">ISTORIJA KUPOVINE</span>
+            <h2>Porudžbine</h2>
+          </div>
+          <div class="orders-heading-actions">
+            <p>Pregled aktivnih i prethodnih porudžbina sportske opreme.</p>
+            <button type="button" class="show-orders-button" (click)=" promeniPrikazPorudzbina() ">
+              {{prikaziPorudzbine ? 'Sakrij porudžbine' : 'Prikaži porudžbine'}}
+            </button>
+          </div>
+        </div>
+        <ng-container *ngIf="prikaziPorudzbine">
+          <div class="message" *ngIf="ucitavanjePorudzbina">
+            Učitavanje porudžbina...
+          </div>
+          <div class="table-shell" *ngIf="!ucitavanjePorudzbina">
+            <table class="orders-table">
+              <thead>
+                <tr>
+                  <th>Datum porudžbine</th>
+                  <th>Proizvodi</th>
+                  <th>Broj komada</th>
+                  <th>Ukupna cena</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor=" let porudzbina of porudzbine ">
+                  <td>
+                    <strong>{{porudzbina.datumPorudzbine | date: 'dd.MM.yyyy.'}}</strong>
+                    <small>{{porudzbina.datumPorudzbine | date:'HH:mm'}}</small>
+                  </td>
+                  <td class="order-products">{{opisStavkiPorudzbine( porudzbina )}}</td>
+                  <td>{{ukupanBrojStavkiPorudzbine( porudzbina )}}</td>
+                  <td>
+                    <strong>{{porudzbina.ukupnaCena}} RSD</strong>
+                  </td>
+                  <td>
+                    <span class="status" [class.status--pending]=" porudzbina.status === 'naruceno' " [class.status--confirmed]=" porudzbina.status === 'preuzeto' " [class.status--cancelled]=" porudzbina.status === 'otkazano' ">{{nazivStatusaPorudzbine( porudzbina.status )}}</span>
+                  </td>
+                  <td>
+                    <button *ngIf=" porudzbina.status === 'naruceno' " type="button" class="cancel-button" [disabled]=" otkazivanjePorudzbineId === porudzbina.id " (click)=" otkaziPorudzbinu( porudzbina ) ">
+                      {{otkazivanjePorudzbineId === porudzbina.id ? 'Otkazivanje...' : 'Otkaži'}}
+                    </button>
+                    <span class="no-action" *ngIf=" porudzbina.status !== 'naruceno' ">—</span>
+                  </td>
+                </tr>
+                <tr *ngIf="!porudzbine.length">
+                  <td colspan="6" class="empty-cell">Trenutno nemate porudžbina.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </ng-container>
+      </section>
+    </ng-container>
+  </main>
+  <app-public-footer></app-public-footer>
+</div>

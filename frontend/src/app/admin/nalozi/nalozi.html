@@ -1,0 +1,252 @@
+<div class="page-shell">
+  <app-admin-header></app-admin-header>
+
+  <main class="accounts-page">
+    <section class="accounts-hero">
+      <div>
+        <span class="eyebrow">ADMINISTRACIJA</span>
+
+        <h1>Korisnički nalozi</h1>
+
+        <p>Pregledajte, menjajte i brišite naloge korisnika sistema.</p>
+      </div>
+
+      <div class="hero-stat">
+        <span>Ukupno naloga</span>
+
+        <strong>{{nalozi.length}}</strong>
+      </div>
+    </section>
+
+    <section class="accounts-content">
+      <div class="filters-card">
+        <div class="filter-heading">
+          <div>
+            <span class="eyebrow">PRETRAGA</span>
+
+            <h2>Pronađite nalog</h2>
+          </div>
+
+          <button type="button" class="reset-button" (click)="ponistiFiltere()">Poništi filtere</button>
+        </div>
+
+        <div class="filters-grid">
+          <label>
+            <span>Pretraga korisnika</span>
+
+            <input type="text" name="pretraga" [(ngModel)]="pretraga" (ngModelChange)="filtrirajNaloge()" placeholder="Ime, prezime, korisničko ime ili imejl">
+          </label>
+
+          <label>
+            <span>Tip naloga</span>
+
+            <select name="izabraniTip" [(ngModel)]="izabraniTip" (ngModelChange)="filtrirajNaloge()">
+              <option value="">Svi korisnici</option>
+
+              <option value="sportista">Sportisti</option>
+
+              <option value="zaposleni">Zaposleni</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="loading-card" *ngIf="ucitavanje">Učitavanje korisničkih naloga...</div>
+
+      <div class="accounts-table-shell" *ngIf="!ucitavanje">
+        <table>
+          <thead>
+            <tr>
+              <th>Korisnik</th>
+              <th>Tip naloga</th>
+              <th>Kontakt</th>
+              <th>Sportovi</th>
+              <th>Broj objekata</th>
+              <th>Akcije</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let nalog of prikazaniNalozi">
+              <td>
+                <div class="user-cell">
+                  <img [src]="putanjaSlike(nalog.slika)" [alt]="nalog.ime">
+
+                  <div>
+                    <strong>{{nalog.ime}} {{nalog.prezime}}</strong>
+
+                    <small>@{{nalog.username}}</small>
+                  </div>
+                </div>
+              </td>
+
+              <td>
+                <span
+                  class="type-badge"
+                  [class.type-badge--athlete]="nalog.tip === 'sportista'"
+                  [class.type-badge--employee]="nalog.tip === 'zaposleni'"
+                  [class.type-badge--admin]="nalog.tip === 'administrator'">
+                  {{nazivTipa(nalog.tip)}}
+                </span>
+              </td>
+
+              <td>
+                <div class="contact-cell">
+                  <span>{{nalog.imejl}}</span>
+
+                  <small>{{nalog.telefon}}</small>
+                </div>
+              </td>
+
+              <td>
+                <span class="sports-text">{{opisSportova(nalog)}}</span>
+              </td>
+
+              <td>
+                <span *ngIf="nalog.tip === 'zaposleni'">{{nalog.objekti.length}}</span>
+
+                <span class="not-applicable" *ngIf="nalog.tip !== 'zaposleni'">—</span>
+              </td>
+
+              <td>
+                <div class="table-actions">
+                  <button type="button" class="edit-button" (click)="izaberiNalog(nalog)">Izmeni</button>
+
+                  <button type="button" class="delete-button" [disabled]="brisanje" (click)="obrisiNalog(nalog)">Obriši</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr *ngIf="prikazaniNalozi.length === 0">
+              <td colspan="6" class="empty-cell">Nema naloga koji odgovaraju izabranim kriterijumima.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="server-message" [class.server-message--success]="uspesnaPoruka" *ngIf="poruka">{{poruka}}</p>
+
+      <section #sekcijaIzmene class="edit-section" *ngIf="izabraniNalog as nalog">
+        <div class="edit-heading">
+          <div>
+            <span class="eyebrow">IZMENA NALOGA</span>
+
+            <h2>{{nalog.ime}} {{nalog.prezime}}</h2>
+
+            <p>Izmenite podatke izabranog korisnika.</p>
+          </div>
+
+          <button type="button" class="close-button" (click)="zatvoriIzmenu()">Zatvori</button>
+        </div>
+
+        <form class="edit-form" (ngSubmit)="sacuvajIzmene()">
+          <div class="edit-user-preview">
+            <img [src]="putanjaSlike(nalog.slika)" [alt]="nalog.ime">
+
+            <div>
+              <strong>{{nalog.ime}} {{nalog.prezime}}</strong>
+
+              <span>{{nazivTipa(nalog.tip)}}</span>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <label>
+              <span>Tip naloga</span>
+
+              <input type="text" [value]="nazivTipa(nalog.tip)" disabled>
+            </label>
+
+            <label>
+              <span>Korisničko ime</span>
+
+              <input type="text" name="username" [(ngModel)]="nalog.username" required>
+            </label>
+
+            <label>
+              <span>Ime</span>
+
+              <input type="text" name="ime" [(ngModel)]="nalog.ime" required>
+            </label>
+
+            <label>
+              <span>Prezime</span>
+
+              <input type="text" name="prezime" [(ngModel)]="nalog.prezime" required>
+            </label>
+
+            <label>
+              <span>Telefon</span>
+
+              <input type="tel" name="telefon" [(ngModel)]="nalog.telefon" required>
+            </label>
+
+            <label>
+              <span>Imejl adresa</span>
+
+              <input type="email" name="imejl" [(ngModel)]="nalog.imejl" required>
+            </label>
+          </div>
+
+          <div class="employee-fields" *ngIf="nalog.tip === 'zaposleni'">
+            <div class="subsection-heading">
+              <h3>Podaci zaposlenog</h3>
+
+              <p>Poslovni podaci naloga zaposlenog.</p>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Adresa sedišta</span>
+
+                <input type="text" name="adresaSedista" [(ngModel)]="nalog.adresaSedista" required>
+              </label>
+
+              <label>
+                <span>Matični broj</span>
+
+                <input type="text" name="maticniBroj" [(ngModel)]="nalog.maticniBroj" required>
+              </label>
+
+              <label>
+                <span>PIB</span>
+
+                <input type="text" name="pib" [(ngModel)]="nalog.pib" required>
+              </label>
+
+              <label>
+                <span>Broj objekata</span>
+
+                <input type="number" [value]="nalog.objekti.length" disabled>
+              </label>
+            </div>
+          </div>
+
+          <div class="sports-section">
+            <div class="subsection-heading">
+              <h3>Sportovi</h3>
+
+              <p>Možete izabrati najviše pet sportova.</p>
+            </div>
+
+            <div class="sports-grid">
+              <label class="sport-option" *ngFor="let sport of sportovi">
+                <input type="checkbox" [name]="'sport-' + sport" [checked]="nalog.sportovi .includes(sport)" (change)="promeniSport(sport,$event)">
+
+                <span>{{sport}}</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="secondary-button" (click)="zatvoriIzmenu()">Odustanite</button>
+
+            <button type="submit" class="primary-button" [disabled]="cuvanje">{{ cuvanje ? 'Čuvanje...' : 'Sačuvajte izmene' }}</button>
+          </div>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <app-public-footer></app-public-footer>
+</div>

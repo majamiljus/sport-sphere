@@ -1,0 +1,102 @@
+<app-sportista-header></app-sportista-header>
+<main class="korpa-page">
+  <section class="hero">
+    <div>
+      <span class="eyebrow">VAŠA KUPOVINA</span>
+      <h1>Korpa</h1>
+      <p>Pregledajte izabrane proizvode, promenite količinu i kreirajte porudžbinu.</p>
+    </div>
+  </section>
+  <section class="content-section">
+    <div class="section-heading">
+      <div>
+        <span class="section-number">01</span>
+        <div>
+          <span class="eyebrow">IZABRANI PROIZVODI</span>
+          <h2>Pregled korpe</h2>
+        </div>
+      </div>
+      @if(korpa.length > 0) {
+        <button type="button" class="clear-button" (click)="isprazniKorpu()">
+          Isprazni korpu
+        </button>
+      }
+    </div>
+    @if(poruka) {
+      <div class="message message--success">
+        {{poruka}}
+      </div>
+    }
+    @if(greska) {
+      <div class="message message--error">
+        {{greska}}
+      </div>
+    }
+    @if(korpa.length === 0) {
+      <div class="empty-cart">
+        <h2>Vaša korpa je prazna</h2>
+        <p>Dodajte proizvode iz prodavnice kako biste kreirali porudžbinu.</p>
+        <a class="primary-link" routerLink="/sportista/prodavnica">
+          Pogledaj prodavnicu
+        </a>
+      </div>
+    } @else {
+      <div class="cart-layout">
+        <div class="cart-items">
+          @for(stavka of korpa; track stavka.opremaId) {
+            <article class="cart-item">
+              <img [src]="putanjaSlike(stavka.slika)" [alt]="stavka.naziv">
+              <div class="item-info">
+                <span class="sport-badge">{{stavka.sport}}</span>
+                <h2>{{stavka.naziv}}</h2>
+                <p>
+                  Jedinična cena:
+                  <strong>{{formatirajCenu(stavka.cena)}}  RSD</strong>
+                </p>
+                <p>
+                  Dostupno na stanju:
+                  <strong>{{stavka.stanje}}</strong>
+                </p>
+              </div>
+              <div class="quantity-section">
+                <span>Količina</span>
+                <div class="quantity-controls">
+                  <button type="button" aria-label="Smanji količinu" (click)="smanjiKolicinu(stavka)">
+                    −
+                  </button>
+                  <strong>{{stavka.kolicina}}</strong>
+                  <button type="button" aria-label="Povećaj količinu" [disabled]="stavka.kolicina>= stavka.stanje" (click)="povecajKolicinu(stavka)">
+                    +
+                  </button>
+                </div>
+              </div>
+              <div class="item-total">
+                <span>Ukupno</span>
+                <strong>{{formatirajCenu(stavka.cena * stavka.kolicina)}} RSD</strong>
+              </div>
+              <button type="button" class="remove-button" (click)="ukloniIzKorpe(stavka)">
+                Ukloni
+              </button>
+            </article>
+          }
+        </div>
+        <aside class="order-summary">
+          <span class="eyebrow">PORUDŽBINA</span>
+          <h2>Ukupna cena</h2>
+          <div class="summary-row">
+            <span>Ukupan broj komada</span>
+           <strong>{{ukupanBrojKomada()}}</strong>
+          </div>
+          <div class="summary-total">
+            <span>Za plaćanje pri preuzimanju</span>
+            <strong>{{formatirajCenu(ukupnaCena())}}  RSD</strong>
+          </div>
+          <button type="button" class="order-button" [disabled]="narucivanje" (click)="naruci()">
+            {{narucivanje ? 'Naručivanje...' : 'Naruči'}}
+          </button>
+        </aside>
+      </div>
+    }
+  </section>
+</main>
+<app-public-footer></app-public-footer>

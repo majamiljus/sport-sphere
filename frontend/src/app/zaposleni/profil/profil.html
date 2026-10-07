@@ -1,0 +1,170 @@
+<div class="page-shell">
+  <app-zaposleni-header></app-zaposleni-header>
+  <main>
+    <div class="message" *ngIf="loading">Učitavanje profila...</div>
+    <ng-container *ngIf="!loading && profil">
+      <section class="profile-hero">
+        <div>
+          <span class="eyebrow">PROFIL ZAPOSLENOG</span>
+          <h1>{{profil.ime}} {{profil.prezime}}</h1>
+          <p>Ažurirajte lične podatke, profilnu sliku i omiljene sportove i pregledajte sportske objekte kojima upravljate.</p>
+          <button type="button" class="reports-hero-button" (click)="idiNaIzvestaje()">Generišite izveštaje</button>
+        </div>
+        <img [src]="pregledSlike" [alt]="profil.ime">
+      </section>
+      <section class="content-section">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">LIČNI PODACI</span>
+            <h2>Vaš nalog</h2>
+          </div>
+        </div>
+        <form class="profile-card" (ngSubmit)="sacuvajIzmene()">
+          <div class="form-grid">
+            <label>
+              <span>Korisničko ime</span>
+              <input type="text" name="username" [(ngModel)]="profil.username" disabled>
+            </label>
+            <label>
+              <span>Ime</span>
+              <input type="text" name="ime" [(ngModel)]="profil.ime" required>
+            </label>
+            <label>
+              <span>Prezime</span>
+              <input type="text" name="prezime" [(ngModel)]="profil.prezime" required>
+            </label>
+            <label>
+              <span>Kontakt telefon</span>
+              <input type="tel" name="telefon" [(ngModel)]="profil.telefon" required>
+            </label>
+            <label>
+              <span>Imejl adresa</span>
+              <input type="email" name="imejl" [(ngModel)]="profil.imejl" required>
+            </label>
+            <label>
+              <span>Adresa sedišta</span>
+              <input type="text" name="adresaSedista" [(ngModel)]="profil.adresaSedista" disabled>
+            </label>
+            <label>
+              <span>Matični broj</span>
+              <input type="text" name="maticniBroj" [(ngModel)]="profil.maticniBroj" disabled>
+            </label>
+            <label>
+              <span>PIB</span>
+              <input type="text" name="pib" [(ngModel)]="profil.pib" disabled>
+            </label>
+          </div>
+          <div class="profile-image-section">
+            <img [src]="pregledSlike" alt="Profilna slika">
+            <div class="profile-image-controls">
+              <label class="file-field">
+                <span>Promenite profilnu sliku</span>
+                <input #inputSlike type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" (change)="izaberiSliku($event)">
+                <small>PNG ili JPG/JPEG, najviše 5 MB.</small>
+              </label>
+              <div class="avatar-actions">
+                <button type="button" class="generate-avatar-button" (click)="generisiAvatar()">Generiši avatar</button>
+                <button type="button" class="remove-image-button" (click)="ukloniIzabranuSliku(inputSlike)">Ukloni izabranu sliku</button>
+              </div>
+              <p class="image-message image-message--success" *ngIf="informacijaAvatara">{{informacijaAvatara}}</p>
+              <p class="image-message image-message--error" *ngIf="porukaSlike">{{porukaSlike}}</p>
+            </div>
+          </div>
+          <div class="sports-section">
+            <div>
+              <h3>Omiljeni sportovi</h3>
+              <p>Možete izabrati najviše pet sportova.</p>
+            </div>
+            <div class="sports-grid">
+              <label class="sport-option" *ngFor="let sport of sportovi">
+                <input type="checkbox" [name]="'sport-'+ sport" [checked]="profil.sportovi.includes(sport)" (change)="promeniSport( sport, $event )">
+                <span>{{sport}}</span>
+              </label>
+            </div>
+          </div>
+          <button class="primary-button" type="submit" [disabled]="cuvanje">{{ cuvanje ? 'Čuvanje...' : 'Sačuvajte izmene' }}</button>
+        </form>
+      </section>
+      <p class="server-message" [class.server-message--success]="uspesnaPoruka" *ngIf="poruka">{{poruka}}</p>
+      <section #izvestajiSekcija id="izvestaji" class="content-section reports-section">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">IZVEŠTAJI</span>
+            <h2>Mesečni PDF izveštaji</h2>
+            <p>Izaberite mesec i generišite izveštaj za sportske objekte kojima upravljate.</p>
+          </div>
+        </div>
+        <div class="reports-panel">
+          <label class="report-month-field">
+            <span>Mesec izveštaja</span>
+            <input type="month" lang="sr-Latn-RS" name="izabraniMesec" [(ngModel)]="izabraniMesec" [max]="maksimalniMesec">
+            <small>Izveštaj se generiše za ceo izabrani mesec.</small>
+          </label>
+          <div class="reports-grid">
+            <article class="report-card">
+              <div class="report-card-icon">%</div>
+              <div class="report-card-content">
+                <span class="report-card-label">POPUNJENOST</span>
+                <h3>Popunjenost terena</h3>
+                <p>PDF prikazuje procenat popunjenosti za svaki teren ili drugi rezervisani resurs tokom izabranog meseca.</p>
+              </div>
+              <button type="button" class="report-button" [disabled]="generisanjePopunjenosti || generisanjePrometaOpreme || !izabraniMesec" (click)="generisiIzvestajPopunjenosti()">{{ generisanjePopunjenosti ? 'Generisanje...' : 'Preuzmite PDF' }}</button>
+            </article>
+            <article class="report-card">
+              <div class="report-card-icon">RSD</div>
+              <div class="report-card-content">
+                <span class="report-card-label">OPREMA</span>
+                <h3>Promet opreme</h3>
+                <p>PDF prikazuje prodatu opremu, količine i ostvareni promet tokom izabranog meseca.</p>
+              </div>
+              <button type="button" class="report-button" [disabled]="generisanjePopunjenosti || generisanjePrometaOpreme || !izabraniMesec" (click)="generisiIzvestajPrometaOpreme()">{{ generisanjePrometaOpreme ? 'Generisanje...' : 'Preuzmite PDF' }}</button>
+            </article>
+          </div>
+          <p class="report-message report-message--success" *ngIf="porukaIzvestaja">{{porukaIzvestaja}}</p>
+          <p class="report-message report-message--error" *ngIf="greskaIzvestaja">{{greskaIzvestaja}}</p>
+        </div>
+      </section>
+      <section class="content-section">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">SPORTSKI OBJEKTI</span>
+            <h2>Objekti koje vodite</h2>
+          </div>
+        </div>
+        <div class="table-shell">
+          <table>
+            <thead>
+              <tr>
+                <th>Naziv</th>
+                <th>Grad</th>
+                <th>Adresa</th>
+                <th>Sportovi</th>
+                <th>Elementi objekta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let objekat of objekti">
+                <td>
+                  <strong>{{objekat.naziv}}</strong>
+                </td>
+                <td>{{objekat.grad}}</td>
+                <td>{{objekat.adresa}}</td>
+                <td>{{opisSportova(objekat)}}</td>
+                <td class="facility-elements">
+                  <div class="facility-element" *ngFor="let teren of objekat.tereni">
+                    <strong>{{teren.naziv}}</strong>
+                    <small>{{teren.tip}}, {{teren.sport}}, kapacitet: {{teren.kapacitet}}</small>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="objekti.length === 0">
+                <td colspan="5" class="empty-cell">Trenutno nemate registrovanih sportskih objekata.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </ng-container>
+  </main>
+  <app-public-footer></app-public-footer>
+</div>

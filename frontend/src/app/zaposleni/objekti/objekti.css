@@ -1,0 +1,505 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 10% 25%,
+      rgba(242,165,95,.24),
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 92% 18%,
+      rgba(61,130,108,.18),
+      transparent 28%
+    ),
+    #f5efdd;
+  color: #102b2a;
+  font-family: Inter,Arial,sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+main {
+  width: min(1380px,calc(100% - 40px));
+  margin: 0 auto;
+  padding-bottom: 110px;
+}
+
+.page-hero {
+  min-height: 430px;
+  padding: 65px 0;
+  border-top: 1px solid rgba(16,43,42,.12);
+  border-bottom: 1px solid rgba(16,43,42,.12);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 50px;
+}
+
+.page-hero h1 {
+  margin: 0;
+  font-size: clamp(55px,8vw,110px);
+  line-height: .88;
+  letter-spacing: -.065em;
+}
+
+.page-hero p {
+  max-width: 650px;
+  margin-top: 25px;
+  color: rgba(16,43,42,.68);
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.hero-badge {
+  width: 210px;
+  height: 210px;
+  border-radius: 50%;
+  background: #102b2a;
+  color: #fffaf0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(16,43,42,.18);
+}
+
+.hero-badge strong {
+  font-size: 72px;
+  line-height: 1;
+}
+
+.hero-badge span {
+  margin-top: 8px;
+  font-weight: 800;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 12px;
+  color: #d96c1f;
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: .15em;
+}
+
+.content-section {
+  padding-top: 90px;
+}
+
+.section-heading {
+  margin-bottom: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 30px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: clamp(40px,5vw,70px);
+  line-height: .95;
+  letter-spacing: -.055em;
+}
+
+.section-heading > p {
+  max-width: 430px;
+  margin: 0;
+  color: rgba(16,43,42,.64);
+  line-height: 1.5;
+}
+
+.object-form,
+.json-card {
+  padding: 28px;
+  border: 1px solid rgba(16,43,42,.12);
+  border-radius: 30px;
+  background: rgba(255,250,240,.76);
+}
+
+.form-grid,
+.court-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.full-field {
+  grid-column: 1 / -1;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  font-weight: 750;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: 50px;
+  padding: 11px 14px;
+  border: 1px solid rgba(16,43,42,.2);
+  border-radius: 13px;
+  background: #fff;
+  color: #102b2a;
+  font: inherit;
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #102b2a;
+  box-shadow: 0 0 0 3px rgba(16,43,42,.12);
+}
+
+label small {
+  color: rgba(16,43,42,.55);
+  font-weight: 500;
+  text-align: right;
+}
+
+.courts-section {
+  margin-top: 35px;
+  padding-top: 30px;
+  border-top: 1px solid rgba(16,43,42,.1);
+}
+
+.courts-heading {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 25px;
+}
+
+.courts-heading h3 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.courts-heading p {
+  margin: 6px 0 0;
+  color: rgba(16,43,42,.6);
+}
+
+.court-card {
+  margin-top: 18px;
+  padding: 22px;
+  border: 1px solid rgba(16,43,42,.12);
+  border-radius: 22px;
+  background: rgba(255,255,255,.6);
+}
+
+.court-card-heading {
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.court-card-heading strong {
+  font-size: 20px;
+}
+
+.primary-button,
+.add-court-button,
+.secondary-button,
+.json-button,
+.edit-button,
+.remove-court-button {
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primary-button {
+  width: 100%;
+  min-height: 54px;
+  margin-top: 28px;
+  border: 0;
+  border-radius: 13px;
+  background: #d96c1f;
+  color: #fffaf0;
+}
+
+.primary-button:hover {
+  background: #bd5917;
+}
+
+.add-court-button,
+.edit-button {
+  border: 0;
+  background: #102b2a;
+  color: #fffaf0;
+}
+
+.add-court-button:hover,
+.edit-button:hover {
+  background: #1b4542;
+}
+
+.secondary-button {
+  border: 1px solid #102b2a;
+  background: transparent;
+  color: #102b2a;
+}
+
+.secondary-button:hover {
+  background: #102b2a;
+  color: #fffaf0;
+}
+
+.remove-court-button {
+  min-height: 38px;
+  padding: 0 15px;
+  border: 1px solid #a33c30;
+  background: transparent;
+  color: #a33c30;
+}
+
+.remove-court-button:hover {
+  background: #a33c30;
+  color: white;
+}
+
+.json-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 20px;
+}
+
+.json-card input {
+  padding: 9px;
+}
+
+.json-button {
+  border: 0;
+  background: #102b2a;
+  color: #fffaf0;
+}
+
+.json-button:disabled,
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.objects-grid {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 20px;
+}
+
+.object-card {
+  padding: 26px;
+  border: 1px solid rgba(16,43,42,.12);
+  border-radius: 26px;
+  background: rgba(255,250,240,.76);
+}
+
+.object-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 20px;
+}
+
+.object-card-header span {
+  color: #d96c1f;
+  font-size: 13px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.object-card-header h3 {
+  margin: 7px 0 0;
+  font-size: 29px;
+  line-height: 1;
+}
+
+.address {
+  margin: 18px 0;
+  color: rgba(16,43,42,.65);
+}
+
+.object-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.object-meta span,
+.sports-list span {
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: rgba(16,43,42,.08);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.sports-list {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.court-list {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(16,43,42,.1);
+}
+
+.court-list div {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(16,43,42,.08);
+}
+
+.court-list div:last-child {
+  border-bottom: 0;
+}
+
+.court-list strong,
+.court-list small {
+  display: block;
+}
+
+.court-list small {
+  margin-top: 5px;
+  color: rgba(16,43,42,.57);
+}
+
+.server-message {
+  margin: 25px 0;
+  padding: 15px 18px;
+  border-radius: 14px;
+  background: #ffe0d9;
+  color: #8a2f1f;
+  font-weight: 700;
+}
+
+.server-message--success {
+  background: #dcebdd;
+  color: #1f5d3d;
+}
+.empty-courts,
+.empty-objects,
+.loading-message {
+  padding: 30px;
+  border-radius: 18px;
+  background: rgba(16,43,42,.05);
+  color: rgba(16,43,42,.6);
+  text-align: center;
+}
+
+.empty-objects {
+  grid-column: 1 / -1;
+}
+.object-card {
+  position: relative;
+  transition:
+    opacity .2s ease,
+    border-color .2s ease,
+    transform .2s ease;
+}
+
+.object-card--inactive {
+  opacity: .72;
+  border-color: rgba(12,49,47,.18);
+  background: rgba(244,240,230,.85);
+}
+
+.object-card--inactive:hover {
+  opacity: .9;
+}
+
+.object-status {
+  width: fit-content;
+  margin-bottom: 9px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  display: inline-flex;
+}
+
+.object-status--active {
+  border: 1px solid #a5cfb4;
+  background: #e0f3e6;
+  color: #28633d;
+}
+
+.object-status--pending {
+  border: 1px solid #e8c879;
+  background: #fff2c8;
+  color: #825d07;
+}
+
+.object-status--rejected {
+  border: 1px solid #e6aaa3;
+  background: #fbe6e3;
+  color: #9c3a30;
+}
+@media(max-width: 900px) {
+  .page-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-badge {
+    width: 160px;
+    height: 160px;
+  }
+
+  .hero-badge strong {
+    font-size: 55px;
+  }
+
+  .objects-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media(max-width: 650px) {
+  main {
+    width: min(100% - 24px,1380px);
+  }
+
+  .form-grid,
+  .court-grid,
+  .json-card {
+    grid-template-columns: 1fr;
+  }
+
+  .section-heading,
+  .courts-heading,
+  .object-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .full-field {
+    grid-column: auto;
+  }
+
+  .secondary-button,
+  .add-court-button,
+  .json-button,
+  .edit-button {
+    width: 100%;
+  }
+}

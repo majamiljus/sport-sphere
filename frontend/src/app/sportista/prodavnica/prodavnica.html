@@ -1,0 +1,71 @@
+<app-sportista-header></app-sportista-header>
+<main class="prodavnica-page">
+  <section class="hero">
+    <span class="eyebrow">SPORTSKA OPREMA</span>
+    <h1>Prodavnica</h1>
+    <p>Pregledajte sportsku opremu i dodajte proizvode u svoju korpu.</p>
+  </section>
+  <section class="content">
+    <article class="filter-card">
+      <label for="sport">
+        Vrsta sporta
+      </label>
+      <select id="sport" name="sport" [(ngModel)]="izabraniSport" (change)="ucitajOpremu()">
+        <option value="">Svi sportovi</option>
+        @for(sport of sportovi; track sport) {
+          <option [value]="sport">{{sport}}</option>
+        }
+      </select>
+    </article>
+    @if(poruka) {
+      <div class="message message--success">
+        {{poruka}}
+      </div>
+    }
+    @if(greska) {
+      <div class="message message--error">
+        {{greska}}
+      </div>
+    }
+    @if(ucitavanje) {
+      <div class="empty-state">
+        Učitavanje opreme...
+      </div>
+    } @else if(oprema.length === 0) {
+      <div class="empty-state">
+        Trenutno nema opreme za izabrani sport.
+      </div>
+    } @else {
+      <div class="product-grid">
+        @for(proizvod of oprema; track proizvod.id) {
+          <article class="product-card">
+            <div class="product-image">
+              <img [src]="putanjaSlike(proizvod.slika)" [alt]="proizvod.naziv" />
+              @if(proizvod.stanje === 0) {
+                <span class="out-of-stock">Nema na stanju</span>
+              }
+            </div>
+            <div class="product-content">
+              <span class="sport-badge">{{proizvod.sport}}</span>
+              <h2>{{proizvod.naziv}}</h2>
+              <div class="product-info">
+                <span>
+                  Cena
+                  <strong>{{formatirajCenu(proizvod.cena)}} RSD</strong>
+                </span>
+                <span>
+                  Na stanju
+                  <strong>{{proizvod.stanje}}</strong>
+                </span>
+              </div>
+              <button type="button" class="primary-button" [disabled]="proizvod.stanje === 0" (click)="dodajUKorpu(proizvod)">
+                Dodaj u korpu
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</main>
+<app-public-footer></app-public-footer>

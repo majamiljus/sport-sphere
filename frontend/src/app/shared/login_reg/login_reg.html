@@ -1,0 +1,14 @@
+<div class="auth-page">
+  <aside class="visual-panel" aria-hidden="true"></aside>
+
+  <main class="form-panel">
+    <section class="auth-card" [class.auth-card--wide]="wide">
+      <header class="auth-header">
+        <h1>{{ title }}</h1>
+        <p>{{ subtitle }}</p>
+      </header>
+
+      <ng-content />
+    </section>
+  </main>
+</div>

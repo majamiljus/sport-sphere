@@ -1,0 +1,125 @@
+<div class="page-shell">
+  <app-admin-header></app-admin-header>
+
+  <main class="trainers-page">
+    <section class="trainers-hero">
+      <div>
+        <span class="eyebrow">ADMINISTRACIJA</span>
+
+        <h1>Evidencija trenera</h1>
+
+        <p>Pregledajte aktivne trenere sistema, njihove sportove, specijalizacije i objekte u kojima rade.</p>
+      </div>
+
+      <div class="hero-stat">
+        <span>Aktivni treneri</span>
+
+        <strong>{{treneri.length}}</strong>
+      </div>
+    </section>
+
+    <section class="trainers-content">
+      <div class="filters-card">
+        <div class="filter-heading">
+          <div>
+            <span class="eyebrow">PRETRAGA</span>
+
+            <h2>Pronađite trenera</h2>
+          </div>
+
+          <button type="button" class="reset-button" (click)="ponistiFiltere()">Poništi filtere</button>
+        </div>
+
+        <div class="filters-grid">
+          <label>
+            <span>Pretraga trenera</span>
+
+            <input type="text" name="pretraga" [(ngModel)]="pretraga" (ngModelChange)="filtrirajTrenere()" placeholder="Ime, prezime, sport, specijalizacija ili objekat">
+          </label>
+
+          <label>
+            <span>Sport</span>
+
+            <select name="izabraniSport" [(ngModel)]="izabraniSport" (ngModelChange)="filtrirajTrenere()">
+              <option value="">Svi sportovi</option>
+
+              <option *ngFor="let sport of dostupniSportovi" [value]="sport">{{sport}}</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="loading-card" *ngIf="ucitavanje">Učitavanje trenera...</div>
+
+      <div class="trainers-grid" *ngIf="!ucitavanje">
+        <article class="trainer-card" *ngFor="let trener of prikazaniTreneri">
+          <div class="trainer-heading">
+            <div class="trainer-avatar">{{ trener.ime.charAt(0) }} {{ trener.prezime.charAt(0) }}</div>
+
+            <div class="trainer-name">
+              <span class="sport-label">{{trener.sport}}</span>
+
+              <h2>{{trener.ime}} {{trener.prezime}}</h2>
+
+              <p>{{trener.specijalizacija}}</p>
+            </div>
+          </div>
+
+          <div class="trainer-statistics">
+            <div class="stat-box">
+              <span>Prosečna ocena</span>
+
+              <strong>{{prikaziOcenu( trener.prosecnaOcena )}}</strong>
+            </div>
+
+            <div class="stat-box">
+              <span>Cena po satu</span>
+
+              <strong>{{prikaziCenu( trener.cenaPoSatu )}}</strong>
+            </div>
+          </div>
+
+          <div class="trainer-details">
+            <div class="detail-row">
+              <span>Sport</span>
+
+              <strong>{{trener.sport}}</strong>
+            </div>
+
+            <div class="detail-row">
+              <span>Specijalizacija</span>
+
+              <strong>{{trener.specijalizacija}}</strong>
+            </div>
+
+           <div class="detail-row">
+            <span>Sportski objekat</span>
+
+            <strong>{{trener.nazivObjekta}}</strong>
+            </div>
+          </div>
+
+          <div class="trainer-actions">
+            <button type="button" class="deactivate-button" [disabled]="obrada" (click)="deaktivirajTrenera(trener)">
+              {{
+                obrada
+                  ? 'Obrada...'
+                  : 'Deaktivirajte trenera'
+              }}
+            </button>
+          </div>
+        </article>
+
+        <div class="empty-card" *ngIf="prikazaniTreneri.length === 0">
+          <h3>Nema trenera</h3>
+
+          <p>Trenutno nema aktivnih trenera koji odgovaraju izabranim kriterijumima.</p>
+        </div>
+      </div>
+
+      <p class="server-message" [class.server-message--success]="uspesnaPoruka" *ngIf="poruka">{{poruka}}</p>
+    </section>
+  </main>
+
+  <app-public-footer></app-public-footer>
+</div>

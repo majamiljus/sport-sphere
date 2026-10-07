@@ -1,0 +1,70 @@
+<div class="page-shell">
+  <app-public-header></app-public-header>
+  <main>
+    <a class="back-link" routerLink="/" fragment="pretraga">
+      ← Nazad na pretragu
+    </a>
+    <div class="message" *ngIf="loading">
+      Učitavanje objekta...
+    </div>
+    <div class="message error" *ngIf="!loading && errorMessage">
+      {{errorMessage}}
+    </div>
+    <ng-container *ngIf="!loading && objekat">
+      <section class="details-hero">
+        <div>
+          <span class="eyebrow">{{objekat.grad}}</span>
+          <h1>{{objekat.naziv}}</h1>
+          <p>{{objekat.kratakOpis}}</p>
+          <div class="meta">
+            <span>{{objekat.adresa}}</span>
+            <span>♥ {{objekat.svidjanja}} sviđanja</span>
+            <span>♡ {{objekat.nesvidjanja}} nesviđanja</span>
+          </div>
+          <div class="sports">
+            <span *ngFor="let sport of objekat.sportovi">{{sport}}</span>
+          </div>
+        </div>
+        <img [src]="objekat.naslovnaSlika" [alt]="objekat.naziv">
+      </section>
+      <section class="section">
+        <div class="section-heading">
+          <span class="eyebrow">TERENI I HALE</span>
+          <h2>Dostupni resursi i cenovnik</h2>
+        </div>
+        <div class="court-grid">
+          <article *ngFor="let teren of objekat.tereni">
+            <div>
+              <span>{{teren.tip === 'otvoreni' ? 'Otvoreni teren' : 'Zatvoreni teren'}}</span>
+              <h3>{{teren.naziv}}</h3>
+            </div>
+            <dl>
+              <div>
+                <dt>Sport</dt>
+                <dd>{{teren.sport}}</dd>
+              </div>
+              <div>
+                <dt>Kapacitet</dt>
+                <dd>{{teren.kapacitet}}</dd>
+              </div>
+              <div>
+                <dt>Cena po satu</dt>
+                <dd>{{teren.cenaPoSatu | number:'1.0-0'}} RSD</dd>
+              </div>
+            </dl>
+          </article>
+        </div>
+      </section>
+      <section class="section">
+        <div class="section-heading">
+          <span class="eyebrow">GALERIJA</span>
+          <h2>Pogledaj objekat</h2>
+        </div>
+        <div class="gallery" *ngIf="objekat.galerija.length">
+          <img *ngFor="let slika of objekat.galerija" [src]="slika" [alt]="objekat.naziv">
+        </div>
+      </section>
+    </ng-container>
+  </main>
+  <app-public-footer></app-public-footer>
+</div>

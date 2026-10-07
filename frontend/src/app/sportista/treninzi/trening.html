@@ -1,0 +1,377 @@
+<app-sportista-header></app-sportista-header>
+<main class="trening-page">
+  <section class="hero">
+    <div>
+      <span class="eyebrow">INDIVIDUALNI RAD</span>
+      <h1>Individualni trening</h1>
+      <p>Zakažite svoj individualni trening i pregledajte prošle treninge.</p>
+    </div>
+  </section>
+  <section class="content-grid">
+    <article class="card form-card">
+      <div class="card-heading">
+        <div>
+          <span class="section-number">01</span>
+          <h2>Zakažite trening</h2>
+        </div>
+      </div>
+      <form #treningForma="ngForm" (ngSubmit)="zakaziTrening()">
+        <div class="form-grid">
+          <div class="field">
+            <label for="objekat">
+              Sportski objekat
+            </label>
+            <select id="objekat" name="objekat" [(ngModel)]="objekatId" (change)="promenjenObjekat()" required>
+              <option value="">Izaberite objekat</option>
+              @for(
+                objekat of objekti;
+                track objekat.id
+              ) {
+                <option [value]="objekat.id">{{objekat.naziv}} — {{objekat.grad}}</option>
+              }
+            </select>
+          </div>
+          @if(
+            objekatId &&
+            proveraPravaZakazivanja
+          ) {
+            <div class="message">
+              Provera prava zakazivanja...
+            </div>
+          } @else if(
+            objekatId &&
+            !mozeDaZakazeTrening
+          ) {
+            <div class="message message--error">
+              {{porukaZabraneZakazivanja || 'Nemate pravo da zakažete trening u ovom objektu.'}}
+            </div>
+          } @else {
+            <div class="field">
+              <label for="sport">
+                Sport
+              </label>
+              <select id="sport" name="sport" [(ngModel)]="sport" (change)="promenjenSport()" [disabled]=" !objekatId || !mozeDaZakazeTrening " required>
+                <option value="">Izaberite sport</option>
+                @for(
+                  sportObjekta of
+                  sportoviIzabranogObjekta();
+                  track sportObjekta
+                ) {
+                  <option [value]="sportObjekta">{{sportObjekta}}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label for="teren">
+                Teren / hala
+              </label>
+              <select id="teren" name="teren" [(ngModel)]="teren" (change)="promenjenTeren()" [disabled]=" !sport || !mozeDaZakazeTrening " required>
+                <option value="">Izaberite teren</option>
+                @for(
+                  terenObjekta of
+                  tereniIzabranogSporta();
+                  track terenObjekta.naziv
+                ) {
+                  <option [value]="terenObjekta.naziv">{{terenObjekta.naziv}} — {{terenObjekta.tip}}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label for="trener">
+                Trener
+              </label>
+              <select id="trener" name="trener" [(ngModel)]="trenerId" (change)="promenjenTrener()" [disabled]=" !sport || ucitavanjeTrenera || !mozeDaZakazeTrening " required>
+                <option value="">{{ucitavanjeTrenera ? 'Učitavanje trenera...' : 'Izaberite trenera'}}</option>
+                @for(
+                  trener of treneri;
+                  track trener.id
+                ) {
+                  <option [value]="trener.id">{{trener.ime}} {{trener.prezime}}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label for="datum">
+                Datum
+              </label>
+              <input id="datum" type="date" name="datum" [(ngModel)]="datum" [min]="minimalniDatum" [disabled]=" !trenerId || !teren || !mozeDaZakazeTrening " (ngModelChange)="promenjenDatum()" required>
+            </div>
+            <div class="field">
+              <label for="vreme">
+                Vreme početka
+              </label>
+              <select id="vreme" name="vreme" [(ngModel)]="vreme" [disabled]=" !datum || ucitavanjeTermina || !mozeDaZakazeTrening " required>
+                <option value="">{{ucitavanjeTermina ? 'Učitavanje termina...' : 'Izaberite vreme'}}</option>
+                @for(
+                  sat of slobodniSati;
+                  track sat
+                ) {
+                  <option [value]=" (sat < 10 ? '0' : '') + sat + ':00' ">{{tekstTermina(sat)}}</option>
+                }
+              </select>
+              @if(
+                datum &&
+                trenerId &&
+                teren &&
+                !ucitavanjeTermina &&
+                slobodniSati.length === 0
+              ) {
+                <span class="working-hours no-terms">Trener ili teren nemaju slobodnih termina za izabrani datum.</span>
+              } @else {
+                <span class="working-hours">Radno vreme: {{tekstRadnogVremena()}}</span>
+              }
+            </div>
+          }
+        </div>
+        @if(
+          mozeDaZakazeTrening &&
+          izabraniTrener()
+        ) {
+          <div class="trainer-preview">
+            <div>
+              <span class="trainer-label">Izabrani trener</span>
+              <h3>{{izabraniTrener()?.ime}} {{izabraniTrener()?.prezime}}</h3>
+              <p>Teren: {{teren}}</p>
+            </div>
+            <div class="trainer-details">
+              <span>
+                Ocena:
+                <strong>{{izabraniTrener() ?.prosecnaOcena}}</strong>
+              </span>
+              <span>
+                Osnovna cena:
+                <strong>{{izabraniTrener() ?.cenaPoSatu}} RSD</strong>
+              </span>
+              <span class="final-price-pill">
+                Konačna cena:
+                <strong>{{cenaTreninga()}} RSD</strong>
+              </span>
+            </div>
+          </div>
+        }
+        @if(
+          !objekatId ||
+          mozeDaZakazeTrening
+        ) {
+          <button class="primary-button" type="submit" [disabled]=" treningForma.invalid || zakazivanje || ucitavanjeTermina || slobodniSati.length === 0 || !mozeDaZakazeTrening ">
+            {{zakazivanje ? 'Zakazivanje...' : 'Zakaži trening'}}
+          </button>
+        }
+      </form>
+    </article>
+    @if(poruka) {
+      <div class="message message--success">
+        {{poruka}}
+      </div>
+    }
+    @if(
+      greska &&
+      (
+      !objekatId ||
+      mozeDaZakazeTrening
+      )
+    ) {
+      <div class="message message--error">
+        {{greska}}
+      </div>
+    }
+    @if(
+      !objekatId ||
+      mozeDaZakazeTrening
+    ) {
+      <article class="card trainers-card">
+        <div class="card-heading">
+          <div>
+            <span class="section-number">02</span>
+            <h2>Dostupni treneri</h2>
+          </div>
+        </div>
+        @if(!objekatId || !sport) {
+          <div class="empty-state">
+            Izaberite sportski objekat i sport.
+          </div>
+        } @else if(ucitavanjeTrenera) {
+          <div class="empty-state">
+            Učitavanje trenera...
+          </div>
+        } @else if(treneri.length === 0) {
+          <div class="empty-state">
+            Za izabrani objekat i sport trenutno
+            nema dostupnih trenera.
+          </div>
+        } @else {
+          <div class="trainer-grid">
+            @for(
+              trener of treneri;
+              track trener.id
+            ) {
+              <button type="button" class="trainer-card" [class.trainer-card--selected]=" trener.id === trenerId " (click)=" trenerId = trener.id; promenjenTrener() ">
+                <div class="trainer-card-top">
+                  <div class="trainer-avatar">
+                    {{trener.ime.charAt(0)}}{{trener.prezime.charAt(0)}}
+                  </div>
+                  <div>
+                    <h3>{{trener.ime}} {{trener.prezime}}</h3>
+                    <span class="sport-badge">{{trener.sport}}</span>
+                  </div>
+                </div>
+                <p>{{trener.specijalizacija}}</p>
+                <div class="trainer-card-bottom">
+                  <span>
+                    Ocena
+                    <strong>{{trener.prosecnaOcena}}</strong>
+                  </span>
+                  <span>
+                    Cena po satu
+                    <strong>{{trener.cenaPoSatu}} RSD</strong>
+                  </span>
+                </div>
+              </button>
+            }
+          </div>
+        }
+      </article>
+      <article class="card promotions-card">
+        <div class="card-heading">
+          <div>
+            <span class="section-number">03</span>
+            <h2>Dostupne promocije</h2>
+          </div>
+          @if(izabranaPromocija()) {
+            <span class="selected-promotion-label">Izabrana je jedna promocija</span>
+          }
+        </div>
+        @if(
+          !objekatId ||
+          !sport ||
+          !datum
+        ) {
+          <div class="empty-state">
+            Izaberite sportski objekat,
+            sport i datum treninga.
+          </div>
+        } @else if(ucitavanjePromocija) {
+          <div class="empty-state">
+            Učitavanje promocija...
+          </div>
+        } @else if(
+          dostupnePromocije().length === 0
+        ) {
+          <div class="empty-state">
+            Za izabrani objekat, sport i datum
+            trenutno nema aktivnih promocija.
+          </div>
+        } @else {
+          <div class="promotion-grid">
+            @for(
+              promocija of dostupnePromocije();
+              track promocija.id
+            ) {
+              <button type="button" class="promotion-card" [class.promotion-card--selected]=" izabranaPromocijaId === promocija.id " (click)=" izaberiPromociju( promocija.id ) ">
+                <div class="promotion-card-top">
+                  <div class="promotion-icon">
+                    %
+                  </div>
+                  <div>
+                    <h3>{{promocija.naziv}}</h3>
+                    <span class="sport-badge">{{promocija.sport || 'Svi sportovi'}}</span>
+                  </div>
+                  @if(
+                    izabranaPromocijaId ===
+                    promocija.id
+                  ) {
+                    <span class="promotion-check">✓</span>
+                  }
+                </div>
+                <strong class="promotion-discount">{{tekstPopusta(promocija)}}</strong>
+                <div class="promotion-card-bottom">
+                  <span>
+                    Važi od
+                    <strong>{{promocija.datumPocetka | date:'dd.MM.yyyy.'}}</strong>
+                  </span>
+                  <span>
+                    Važi do
+                    <strong>{{promocija.datumKraja | date:'dd.MM.yyyy.'}}</strong>
+                  </span>
+                </div>
+                <span class="promotion-action">{{izabranaPromocijaId === promocija.id ? 'Kliknite ponovo da uklonite promociju' : 'Kliknite da primenite promociju'}}</span>
+              </button>
+            }
+          </div>
+        }
+      </article>
+    }
+    <article class="card archive-card">
+      <div class="card-heading">
+        <div>
+          <span class="section-number">04</span>
+          <h2>Arhiva treninga</h2>
+        </div>
+        <button type="button" class="secondary-button" (click)="promeniPrikazArhive()">
+          {{prikaziArhivu ? 'Sakrij arhivu treninga' : 'Prikaži arhivu treninga'}}
+        </button>
+      </div>
+      @if(prikaziArhivu) {
+        @if(ucitavanjeArhive) {
+          <div class="empty-state">
+            Učitavanje treninga...
+          </div>
+        } @else if(treninzi.length === 0) {
+          <div class="empty-state">
+            Još uvek nemate zakazane
+            ili završene treninge.
+          </div>
+        } @else {
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Trener</th>
+                  <th>Objekat</th>
+                  <th>Sport</th>
+                  <th>Teren</th>
+                  <th>Termin</th>
+                  <th>Cena</th>
+                  <th>Status</th>
+                  <th>Akcija</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for(
+                  trening of treninzi;
+                  track trening.id
+                ) {
+                  <tr>
+                    <td>
+                      <strong>{{trening.imeTrenera}} {{trening.prezimeTrenera}}</strong>
+                    </td>
+                    <td>{{trening.nazivObjekta}}</td>
+                    <td>
+                      <span class="sport-badge">{{trening.sport}}</span>
+                    </td>
+                    <td>{{trening.teren}}</td>
+                    <td>{{formatirajDatumVreme( trening.pocetak )}}</td>
+                    <td>{{trening.cena}} RSD</td>
+                    <td>
+                      <span class="status" [class.pending]=" trening.status === 'zakazan' " [class.approved]=" trening.status === 'zavrsen' " [class.rejected]=" trening.status === 'otkazan' || trening.status === 'neodrzan' ">{{tekstStatusa( trening.status )}}</span>
+                    </td>
+                 <td>
+                    @if(
+                      mozeDaOtkazeTrening(trening)
+                    ) {
+                      <button type="button" class="danger-button" (click)=" otkaziTrening( trening ) ">
+                        Otkaži
+                      </button>
+                    }
+                  </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    </article>
+  </section>
+</main>
+<app-public-footer></app-public-footer>

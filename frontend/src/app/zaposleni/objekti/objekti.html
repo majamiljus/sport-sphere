@@ -1,0 +1,160 @@
+<app-zaposleni-header></app-zaposleni-header>
+<main>
+  <section class="page-hero">
+    <div>
+      <span class="eyebrow">UPRAVLJANJE OBJEKTIMA</span>
+      <h1>Sportski objekti</h1>
+      <p>Dodajte novi objekat, unesite terene, hale i dvorane ili ažurirajte objekat koji već vodite.</p>
+    </div>
+    <div class="hero-badge">
+      <strong>{{objekti.length}}</strong>
+      <span>{{tekstBrojaObjekata()}}</span>
+    </div>
+  </section>
+  <section class="content-section">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">{{objekat.id ? 'AŽURIRANJE' : 'NOVI OBJEKAT'}}</span>
+        <h2>{{objekat.id ? 'Izmena objekta' : 'Dodavanje objekta'}}</h2>
+      </div>
+      <button type="button" class="secondary-button" *ngIf="objekat.id" (click)="ponistiAzuriranje()">Otkaži ažuriranje</button>
+    </div>
+    <form class="object-form" (ngSubmit)="sacuvajObjekat()">
+      <div class="form-grid">
+        <label>
+          <span>Naziv objekta</span>
+          <input type="text" name="naziv" [(ngModel)]="objekat.naziv" required>
+        </label>
+        <label>
+          <span>Grad</span>
+          <input type="text" name="grad" [(ngModel)]="objekat.grad" required>
+        </label>
+        <label class="full-field">
+          <span>Adresa</span>
+          <input type="text" name="adresa" [(ngModel)]="objekat.adresa" required>
+        </label>
+        <label>
+          <span>Dozvoljeni nedolasci pre blokade</span>
+          <input type="number" name="nedolasci" [(ngModel)]="objekat.dozvoljenaNePojavljivanja" min="1" step="1" required>
+        </label>
+        <label>
+          <span>Radno vreme od</span>
+          <select name="radnoVremeOd" [(ngModel)]="objekat.radnoVremeOd" (ngModelChange)="promeniPocetakRadnogVremena()" required>
+            <option *ngFor="let sat of radniSati" [value]="sat">{{sat}}</option>
+          </select>
+        </label>
+        <label>
+          <span>Radno vreme do</span>
+          <select name="radnoVremeDo" [(ngModel)]="objekat.radnoVremeDo" required>
+            <option *ngFor="let sat of zavrsniRadniSati" [value]="sat" [disabled]="vremeKrajaUMinute(sat) <= vremeUMinute(objekat.radnoVremeOd)">{{sat}}</option>
+          </select>
+        </label>
+        <label class="full-field">
+          <span>Kratak opis</span>
+          <textarea name="kratakOpis" [(ngModel)]="objekat.kratakOpis" maxlength="500"></textarea>
+        </label>
+      </div>
+      <section class="courts-section">
+        <div class="courts-heading">
+          <div>
+            <h3>Tereni, hale i dvorane</h3>
+            <p>Nazivi moraju biti jedinstveni unutar objekta.</p>
+          </div>
+          <button type="button" class="add-court-button" (click)="dodajTeren()">Dodaj teren</button>
+        </div>
+        <article class="court-card" *ngFor="let teren of objekat.tereni;let i = index">
+          <div class="court-card-heading">
+            <strong>Element {{i + 1}}</strong>
+            <button type="button" class="remove-court-button" (click)="ukloniTeren(i)">Ukloni</button>
+          </div>
+          <div class="court-grid">
+            <label>
+              <span>Naziv</span>
+              <input type="text" [name]="'nazivTerena'+ i" [(ngModel)]="teren.naziv" required>
+            </label>
+            <label>
+              <span>Tip</span>
+              <select [name]="'tipTerena'+ i" [(ngModel)]="teren.tip">
+                <option value="otvoreni">Otvoreni teren</option>
+                <option value="zatvoreni">Zatvoreni teren/hala</option>
+              </select>
+            </label>
+            <label>
+              <span>Sport</span>
+              <select [name]="'sportTerena'+ i" [(ngModel)]="teren.sport" required>
+                <option value="" disabled>Izaberite sport</option>
+                <option *ngFor="let sport of sportovi" [value]="sport">{{sport}}</option>
+              </select>
+            </label>
+            <label>
+              <span>Kapacitet</span>
+              <input type="number" [name]="'kapacitetTerena'+ i" [(ngModel)]="teren.kapacitet" min="1" required>
+            </label>
+            <label>
+              <span>Cena po satu</span>
+              <input type="number" [name]="'cenaTerena'+ i" [(ngModel)]="teren.cenaPoSatu" min="0" required>
+            </label>
+            <label class="full-field">
+              <span>Opis opreme</span>
+              <textarea [name]="'opisOpreme'+ i" [(ngModel)]="teren.opisOpreme" maxlength="300"></textarea>
+              <small>{{teren.opisOpreme.length}} / 300</small>
+            </label>
+          </div>
+        </article>
+        <p class="empty-courts" *ngIf="objekat.tereni.length === 0">Još nije dodat nijedan teren, hala ili dvorana.</p>
+      </section>
+      <button type="submit" class="primary-button" [disabled]="cuvanje">{{ cuvanje ? 'Čuvanje...' : objekat.id ? 'Sačuvaj izmene' : 'Dodaj objekat' }}</button>
+      <p class="server-message" [class.server-message--success]="uspesnaPoruka" *ngIf="poruka">{{poruka}}</p>
+    </form>
+  </section>
+  <section class="content-section json-section">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">FILE UPLOAD</span>
+        <h2>Dodavanje preko JSON-a</h2>
+      </div>
+      <p>JSON fajl mora sadržati iste podatke kao forma za dodavanje.</p>
+    </div>
+    <div class="json-card">
+      <input #jsonInput type="file" accept=".json,application/json" (change)="izaberiJson($event)">
+      <button type="button" class="json-button" [disabled]="!jsonFajl || cuvanje" (click)="dodajIzJson(jsonInput)">Dodaj iz JSON fajla</button>
+    </div>
+  </section>
+  <section class="content-section objects-section">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">MOJI OBJEKTI</span>
+        <h2>Objekti koje vodite</h2>
+      </div>
+      <p>Izaberite objekat iz liste kako biste ažurirali njegove podatke.</p>
+    </div>
+    <p class="loading-message" *ngIf="loading">Učitavanje objekata...</p>
+    <div class="objects-grid" *ngIf="!loading">
+      <article class="object-card" *ngFor="let trenutniObjekat of objekti" [class.object-card--inactive]="trenutniObjekat.status !== 'aktivan'">
+        <div class="object-card-header">
+          <div>
+            <span>{{trenutniObjekat.grad}}</span>
+            <h3>{{trenutniObjekat.naziv}}</h3>
+          </div>
+          <button type="button" class="edit-button" (click)="izaberiZaAzuriranje(trenutniObjekat)">Ažuriraj</button>
+        </div>
+        <p class="address">{{trenutniObjekat.adresa}}</p>
+        <div class="object-meta">
+          <span>{{trenutniObjekat.radnoVremeOd}} – {{trenutniObjekat.radnoVremeDo}}</span>
+        </div>
+        <div class="sports-list">
+          <span *ngFor="let sport of trenutniObjekat.sportovi">{{sport}}</span>
+        </div>
+        <div class="court-list">
+          <div *ngFor="let teren of trenutniObjekat.tereni">
+            <strong>{{teren.naziv}}</strong>
+            <small>{{teren.tip}}, {{teren.sport}}, kapacitet {{teren.kapacitet}}</small>
+          </div>
+        </div>
+        <span class="object-status" [class.object-status--active]="trenutniObjekat.status === 'aktivan'" [class.object-status--pending]="trenutniObjekat.status === 'na_cekanju'" [class.object-status--rejected]="trenutniObjekat.status === 'odbijen'">{{tekstStatusaObjekta(trenutniObjekat.status)}}</span>
+      </article>
+      <p class="empty-objects" *ngIf="objekti.length === 0">Trenutno nemate nijedan sportski objekat.</p>
+    </div>
+  </section>
+</main>
+<app-public-footer></app-public-footer>

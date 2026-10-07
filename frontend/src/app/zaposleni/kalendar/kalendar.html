@@ -1,0 +1,114 @@
+<app-zaposleni-header></app-zaposleni-header>
+<main class="kalendar-page">
+  <section class="hero">
+    <div>
+      <span class="eyebrow">INTERAKTIVNI KALENDAR</span>
+      <h1>Pregled termina</h1>
+      <p>Pregledajte rezervacije i treninge po objektu i terenu. Termine u zatvorenim halama i dvoranama možete pomerati prevlačenjem na novi slobodan termin.</p>
+    </div>
+  </section>
+  <section class="calendar-card">
+    <div class="filters">
+      <label>
+        <span>Sportski objekat</span>
+        <select name="objekat" [(ngModel)]="izabraniObjekatId" (ngModelChange)="promenjenObjekat()" [disabled]="ucitavanjeObjekata">
+          <option value="" disabled>{{ ucitavanjeObjekata ? 'Učitavanje objekata...' : 'Izaberite objekat' }}</option>
+          <option *ngFor="let objekat of objekti" [value]="objekat.id">{{objekat.naziv}} — {{objekat.grad}}</option>
+        </select>
+      </label>
+      <label>
+        <span>Teren / hala</span>
+        <select name="teren" [(ngModel)]="izabraniTerenNaziv" (ngModelChange)="promenjenTeren()" [disabled]="!izabraniObjekat">
+          <option value="" disabled>Izaberite teren</option>
+          <option *ngFor="let teren of izabraniObjekat?.tereni" [value]="teren.naziv">{{teren.naziv}} — {{teren.sport}}</option>
+        </select>
+      </label>
+      <div class="selected-info" *ngIf="izabraniObjekat && izabraniTeren">
+        <span>Radno vreme</span>
+        <strong>{{izabraniObjekat.radnoVremeOd}} – {{izabraniObjekat.radnoVremeDo}}</strong>
+        <small [class.drag-enabled]="izabraniTeren.tip === 'zatvoreni'">{{ izabraniTeren.tip === 'zatvoreni' ? 'Prevlačenje termina je omogućeno' : 'Otvoreni teren — termini se ne mogu prevlačiti' }}</small>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button type="button" class="toolbar-button" (click)="idiNaDanas()">Danas</button>
+      <div class="week-navigation">
+        <button type="button" class="arrow-button" (click)="promeniNedelju(-1)">←</button>
+        <strong>{{pocetakNedelje | date:'dd.MM.yyyy.'}} – {{dani[6] | date:'dd.MM.yyyy.'}}</strong>
+        <button type="button" class="arrow-button" (click)="promeniNedelju(1)">→</button>
+      </div>
+    </div>
+    <div class="selected-event-panel" *ngIf="izabraniTermin">
+      <div class="selected-event-heading">
+        <div>
+          <span class="selected-event-label">Sportista:</span>
+          <strong>{{izabraniTermin.ime}} {{izabraniTermin.prezime}}</strong>
+        </div>
+      </div>
+      <div class="selected-event-details">
+        <div class="selected-event-detail">
+          <span>Mejl:</span>
+          <a [href]="'mailto:'+ izabraniTermin.imejl">{{izabraniTermin.imejl}}</a>
+        </div>
+        <div class="selected-event-detail">
+          <span>Telefon:</span>
+          <a [href]="'tel:'+ izabraniTermin.telefon">{{izabraniTermin.telefon}}</a>
+        </div>
+      </div>
+    </div>
+    <div class="drag-week-indicator drag-week-indicator--left" [class.drag-week-indicator--active]="smerPromeneNedeljePriPrevacenju === -1" *ngIf="prevuceniTermin"></div>
+    <div class="drag-week-indicator drag-week-indicator--right" [class.drag-week-indicator--active]="smerPromeneNedeljePriPrevacenju === 1" *ngIf="prevuceniTermin"></div>
+    <p class="message" [class.message-success]="uspesnaPoruka" [class.message-error]="!uspesnaPoruka" *ngIf="poruka">{{poruka}}</p>
+    <div class="empty-state" *ngIf="!ucitavanjeObjekata && objekti.length === 0">Nemate nijedan aktivan sportski objekat.</div>
+    <div class="empty-state" *ngIf="izabraniObjekat && izabraniObjekat.tereni.length === 0">Izabrani objekat nema nijedan teren, halu ili dvoranu.</div>
+    <div class="loading-state" *ngIf="ucitavanjeTermina && !prevuceniTermin">Učitavanje kalendara...</div>
+    <div #calendarScroll class="calendar-scroll" [class.calendar-scroll--loading]="ucitavanjeTermina && !prevuceniTermin" *ngIf="izabraniObjekat && izabraniTeren">
+      <div class="calendar-grid">
+        <div class="corner-header">Vreme</div>
+        <div class="day-header" *ngFor="let dan of dani" [class.day-header-today]="jeDanas(dan)">
+            <strong>{{naziviDana[dan.getDay()]}}</strong>
+             <span>{{dan | date:'dd.MM.'}}</span>
+        </div>
+      <div class="time-column" [style.height.px]="sati.length * visinaSata">
+          <div class="time-label" *ngFor="let sat of sati" [style.height.px]="visinaSata">{{sat % 24 | number:'2.0-0'}}:00</div>
+        </div>
+        <div class="day-column" *ngFor="let dan of dani" [class.day-column-today]="jeDanas(dan)" [style.height.px]="sati.length * visinaSata">
+          <div class="hour-slot" *ngFor="let sat of sati" [style.height.px]="visinaSata" (dragover)="dozvoliSpustanje($event)" (drop)="spustiTermin($event,dan,sat)"></div>
+          <article class="calendar-event" *ngFor="let termin of terminiDana(dan)" 
+          [class.calendar-event-reservation]="termin.tip === 'rezervacija'" 
+          [class.calendar-event-training]="termin.tip === 'trening'" 
+          [class.calendar-event-draggable]="mozeDaSePomera(termin)" 
+          [class.calendar-event-selected]="izabraniTermin?.kljuc === termin.kljuc" 
+          [style.top.px]="pozicijaTermina(termin)" [style.height.px]="visinaTermina(termin)" 
+          [draggable]="mozeDaSePomera(termin)"(click)="izabraniTermin = termin" 
+          (dragstart)="zapocniPrevacenje($event,termin)" 
+          (dragend)="zavrsiPrevacenje()">
+            <div class="event-top">
+              <strong>{{termin.ime}} {{termin.prezime}}</strong>
+              <span class="event-drag-handle" *ngIf="mozeDaSePomera(termin)" title="Prevucite termin">⋮⋮</span>
+            </div>
+            <small class="merged-label">{{termin.pocetak | date:'HH:mm'}} – {{termin.kraj | date:'HH:mm'}}h</small>
+            <small class="merged-label" *ngIf="termin.ids.length > 1">
+              {{termin.ids.length}} {{termin.tip === 'rezervacija' ? 'spojene rezervacije' : 'spojena treninga'}}
+            </small>
+          </article>
+        </div>
+      </div>
+    </div>
+    <div class="calendar-empty" *ngIf="izabraniObjekat && izabraniTeren && !ucitavanjeTermina && spojeniTermini.length === 0">U izabranoj nedelji nema rezervacija ni treninga.</div>
+    <div class="legend" *ngIf="izabraniObjekat && izabraniTeren">
+      <span>
+        <i class="legend-training"></i>
+        Trening
+      </span>
+        <span>
+        <i class="legend-reservation"></i>
+        Rezervacija
+      </span>
+      <span>
+        <i class="legend-free"></i>
+        Slobodan termin
+      </span>
+    </div>
+  </section>
+</main>
+<app-public-footer></app-public-footer>

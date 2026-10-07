@@ -1,0 +1,39 @@
+<header class="site-header">
+  <a
+    class="brand"
+    routerLink="/sportista/profil"
+    aria-label="SportSphere početna stranica sportiste"
+  >
+    <img
+      src="/logo.png"
+      alt="SportSphere logo"
+      class="header-logo"
+    >
+
+    <span>SportSphere</span>
+  </a>
+
+  <nav aria-label="Glavna navigacija sportiste">
+    <a routerLink="/zaposleni/profil" routerLinkActive="active-link">
+      Profil
+    </a>
+    <a routerLink="/zaposleni/objekti" routerLinkActive="active-link">
+       Objekti
+    </a>
+    <a routerLink="/zaposleni/rezervacije" routerLinkActive="active-link">
+      Rezervacije i treninzi
+    </a>
+    <a routerLink="/zaposleni/promocije_oprema" routerLinkActive="active-link">
+      Promocije i oprema
+    </a>
+    <a routerLink="/zaposleni/kalendar" routerLinkActive="active-link">
+      Kalendar
+    </a>
+  </nav>
+  
+  <div class="header-actions">
+    <button type="button" class="logout-button" (click)="odjaviSe()">
+      Odjavi se
+    </button>
+  </div>
+</header>
